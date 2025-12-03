@@ -7,7 +7,7 @@ const cards = document.querySelectorAll('.card');
 cards.forEach((card, index) => {
     card.addEventListener('click', function() {
         if (card.classList.contains('card-active')) {
-            window.location.href = '/CURSOS/index.html';
+            window.location.href = '/cursos/index.html';
         } else if (card.classList.contains('card-coming')) {
             showAlert('Este conteúdo em breve estará disponível!');
         }
@@ -75,7 +75,7 @@ function showExitMessage() {
     localStorage.removeItem('userName');
     
     setTimeout(() => {
-        window.location.href = '/LOGIN/index.html';
+        window.location.href = '/login/index.html';
     }, 2000);
 }
 

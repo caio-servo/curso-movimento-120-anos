@@ -90,7 +90,7 @@ function goBack() {
 // Fechar player
 function closePlayer() {
     if (confirm('Tem certeza que deseja sair do curso?')) {
-        window.location.href = '/MEMBROS/index.html';
+        window.location.href = '/membros/index.html';
     }
 }
 

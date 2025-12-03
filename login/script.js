@@ -145,7 +145,7 @@ function showWelcomeMessage(email) {
     
     // Redirecionar após 2.5 segundos
     setTimeout(() => {
-        window.location.href = '/MEMBROS/index.html';
+          window.location.href = '/membros/index.html';
     }, 1500);
 }
 
@@ -301,4 +301,5 @@ document.head.appendChild(style);
             this.style.transform = 'scale(1)';
         }, 150);
     });
+});
 });
