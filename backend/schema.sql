@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    senha TEXT NOT NULL,
+    ultimo_login DATETIME,
+    require_2fa INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS smtp_config (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    host TEXT NOT NULL,
+    port INTEGER NOT NULL,
+    email TEXT NOT NULL,
+    senha TEXT NOT NULL
+);
