@@ -66,9 +66,36 @@ registerForm.addEventListener('submit', function(e) {
         return;
     }
     
-    // Simula o cadastro
-    performRegister(name, email, password);
-});
+ function performRegister(name, email, password) {
+    const btnRegister = document.querySelector('.btn-register');
+    const originalText = btnRegister.textContent;
+
+    btnRegister.disabled = true;
+    btnRegister.textContent = 'CRIANDO CONTA...';
+    btnRegister.style.opacity = '0.7';
+
+    fetch('http://localhost:3000/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Conta criada com sucesso!');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        } else {
+            showError(data.message);
+        }
+    })
+    .finally(() => {
+        btnRegister.disabled = false;
+        btnRegister.textContent = originalText;
+        btnRegister.style.opacity = '1';
+    });
+}  
 
 // Função de validação de e-mail
 function isValidEmail(email) {

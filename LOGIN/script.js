@@ -35,10 +35,38 @@ loginForm.addEventListener('submit', function(e) {
         passwordInput.focus();
         return;
     }
-    
-    // Simula o login
-    performLogin(email, password);
-});
+ 
+function performLogin(email, password) {
+    const btnLogin = document.querySelector('.btn-login');
+    const originalText = btnLogin.textContent;
+
+    btnLogin.disabled = true;
+    btnLogin.textContent = 'CARREGANDO...';
+    btnLogin.style.opacity = '0.7';
+
+    fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Login realizado com sucesso!');
+
+            setTimeout(() => {
+                showWelcomeMessage(email);
+            }, 1200);
+        } else {
+            showError(data.message);
+        }
+    })
+    .finally(() => {
+        btnLogin.disabled = false;
+        btnLogin.textContent = originalText;
+        btnLogin.style.opacity = '1';
+    });
+}
 
 // Função de validação de e-mail
 function isValidEmail(email) {
