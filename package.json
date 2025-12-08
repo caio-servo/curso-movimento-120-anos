@@ -1,4 +1,10 @@
 {
+  "name": "curso-movimento-120-anos",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node backend/back.js",
+    "init-db": "node backend/back.js --init-db"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.2.1",

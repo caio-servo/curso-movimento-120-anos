@@ -66,36 +66,9 @@ registerForm.addEventListener('submit', function(e) {
         return;
     }
     
- function performRegister(name, email, password) {
-    const btnRegister = document.querySelector('.btn-register');
-    const originalText = btnRegister.textContent;
-
-    btnRegister.disabled = true;
-    btnRegister.textContent = 'CRIANDO CONTA...';
-    btnRegister.style.opacity = '0.7';
-
-    fetch('http://localhost:3000/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showSuccess('Conta criada com sucesso!');
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
-        } else {
-            showError(data.message);
-        }
-    })
-    .finally(() => {
-        btnRegister.disabled = false;
-        btnRegister.textContent = originalText;
-        btnRegister.style.opacity = '1';
-    });
-}  
+    // Chama a função de cadastro
+    performRegister(name, email, password);
+});
 
 // Função de validação de e-mail
 function isValidEmail(email) {
@@ -157,58 +130,49 @@ function showSuccess(message) {
     registerForm.insertBefore(alert, registerForm.firstChild);
 }
 
-// Simula o processo de cadastro
+// Função para realizar o cadastro
 function performRegister(name, email, password) {
     const btnRegister = document.querySelector('.btn-register');
     const originalText = btnRegister.textContent;
-    
+
     btnRegister.disabled = true;
     btnRegister.textContent = 'CRIANDO CONTA...';
     btnRegister.style.opacity = '0.7';
-    
-    setTimeout(() => {
-        // Aqui você faria a requisição real para seu backend
-        // Exemplo com fetch:
-        /*
-        fetch('https://seu-backend.com/api/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ name, email, password })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showSuccess('Conta criada com sucesso!');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1500);
-            } else {
-                showError(data.message || 'Erro ao criar conta!');
-            }
-        })
-        .catch(error => {
+
+    fetch('http://localhost:3000/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+    })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error(`Erro HTTP: ${res.status}`);
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showSuccess('Conta criada com sucesso!');
+            setTimeout(() => {
+                window.location.href = '../login/index.html';
+            }, 1500);
+        } else {
+            showError(data.message || 'Erro ao criar conta!');
+        }
+    })
+    .catch(error => {
+        console.error('Erro completo:', error);
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            showError('Erro de conexão. Verifique se o servidor backend está rodando em http://localhost:3000');
+        } else {
             showError('Erro ao criar conta. Tente novamente.');
-            console.error('Erro:', error);
-        })
-        .finally(() => {
-            btnRegister.disabled = false;
-            btnRegister.textContent = originalText;
-            btnRegister.style.opacity = '1';
-        });
-        */
-        
-        showSuccess('Conta criada com sucesso!');
+        }
+    })
+    .finally(() => {
         btnRegister.disabled = false;
         btnRegister.textContent = originalText;
         btnRegister.style.opacity = '1';
-        
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 2000);
-        
-    }, 2000);
+    });
 }
 
 // Adiciona animações CSS via JavaScript

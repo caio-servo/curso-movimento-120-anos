@@ -35,7 +35,12 @@ loginForm.addEventListener('submit', function(e) {
         passwordInput.focus();
         return;
     }
- 
+    
+    // Chama a função de login
+    performLogin(email, password);
+});
+
+// Função para realizar o login
 function performLogin(email, password) {
     const btnLogin = document.querySelector('.btn-login');
     const originalText = btnLogin.textContent;
@@ -49,16 +54,28 @@ function performLogin(email, password) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
     })
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) {
+            throw new Error(`Erro HTTP: ${res.status}`);
+        }
+        return res.json();
+    })
     .then(data => {
         if (data.success) {
             showSuccess('Login realizado com sucesso!');
-
             setTimeout(() => {
                 showWelcomeMessage(email);
             }, 1200);
         } else {
-            showError(data.message);
+            showError(data.message || 'Credenciais inválidas!');
+        }
+    })
+    .catch(error => {
+        console.error('Erro completo:', error);
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            showError('Erro de conexão. Verifique se o servidor backend está rodando em http://localhost:3000');
+        } else {
+            showError('Erro ao realizar login. Tente novamente.');
         }
     })
     .finally(() => {
@@ -205,37 +222,6 @@ function showSuccess(message) {
     loginForm.insertBefore(alert, loginForm.firstChild);
 }
 
-// Simula o processo de login
-function performLogin(email, password) {
-    const btnLogin = document.querySelector('.btn-login');
-    const originalText = btnLogin.textContent;
-    
-    // Desabilita o botão e mostra loading
-    btnLogin.disabled = true;
-    btnLogin.textContent = 'CARREGANDO...';
-    btnLogin.style.opacity = '0.7';
-    
-    // Simula requisição ao servidor
-    setTimeout(() => {
-        // Verifica credenciais
-        if (email === 'admin@gmail.com' && password === '123456') {
-            showSuccess('Login realizado com sucesso!');
-            btnLogin.disabled = false;
-            btnLogin.textContent = originalText;
-            btnLogin.style.opacity = '1';
-            
-            // Exibe mensagem de boas-vindas e redireciona
-            setTimeout(() => {
-                showWelcomeMessage(email);
-            }, 1500);
-        } else {
-            showError('E-mail ou senha incorretos!');
-            btnLogin.disabled = false;
-            btnLogin.textContent = originalText;
-            btnLogin.style.opacity = '1';
-        }
-    }, 2000);
-}
 
 // Adiciona animações CSS via JavaScript
 const style = document.createElement('style');
@@ -301,5 +287,4 @@ document.head.appendChild(style);
             this.style.transform = 'scale(1)';
         }, 150);
     });
-});
 });
