@@ -141,6 +141,7 @@ function performRegister(name, email, password) {
 
     fetch('http://localhost:3000/register', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password })
     })

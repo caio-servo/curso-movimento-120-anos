@@ -9,6 +9,31 @@ const app = express();
 
 const session = require('express-session');
 
+
+const allowedOrigins = [
+    'http://127.0.0.1:8080',
+    'http://localhost:5500'
+];
+
+// CORS 
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error('CORS bloqueado: ' + origin));
+    },
+    credentials: true
+}));
+
+// Parsers
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// session
 app.use(session({
     name: 'movimento.sid',
     secret: 'movimento-120-anos-secret',
@@ -16,21 +41,10 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        sameSite: 'lax'
+        sameSite: 'none',
+        secure: false
     }
 }));
-
-// CORS
-app.use(cors({
-    origin: 'http://localhost:5500', // ou a porta real do frontend
-    credentials: true,
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type']
-}));
-
-// Parsers
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // DB
 const db = new sqlite3.Database('./database.db');
@@ -128,6 +142,9 @@ app.post('/login', (req, res) => {
             [user.id]
         );
 
+        req.session.userId = user.id;
+        req.session.email = user.email;
+
         res.json({ success: true });
     });
 });
@@ -146,6 +163,10 @@ app.post('/verify-2fa', (req, res) => {
             if (err || !user) {
                 return res.json({ success: false, message: 'Código inválido ou expirado' });
             }
+
+            // FINALIZA LOGIN (sessão)
+            req.session.userId = user.id;
+            req.session.email = user.email;
 
             db.run(
                 `UPDATE usuarios

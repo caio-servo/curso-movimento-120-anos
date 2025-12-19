@@ -118,6 +118,7 @@ form.addEventListener('submit', async (e) => {
         // Aqui você faria a chamada para o backend
         const response = await fetch('http://localhost:3000/verify-2fa', {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
