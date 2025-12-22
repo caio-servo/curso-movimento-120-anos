@@ -48,16 +48,17 @@ function performLogin(email, password) {
         }
 
         if (data.success) {
-            showSuccess('Login realizado com sucesso!');
-            setTimeout(() => showWelcomeMessage(email), 1200);
+            btn.textContent = 'REDIRECIONANDO...';
+            // Redireciona imediatamente sem setTimeout
+            window.location.href = '../membros/index.html';
         } else {
             showError(data.message || 'Credenciais inválidas');
+            btn.disabled = false;
+            btn.textContent = original;
         }
     })
     .catch(() => {
         showError('Erro ao realizar login');
-    })
-    .finally(() => {
         btn.disabled = false;
         btn.textContent = original;
     });
@@ -67,12 +68,3 @@ function performLogin(email, password) {
 function showError(msg) {
     alert(msg);
 }
-
-function showSuccess(msg) {
-    alert(msg);
-}
-
-function showWelcomeMessage(email) {
-    window.location.href = '/membros/index.html';
-}
-
