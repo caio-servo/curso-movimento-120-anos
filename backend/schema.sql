@@ -12,10 +12,15 @@ CREATE TABLE IF NOT EXISTS usuarios (
 
     wfa_code TEXT,
 
+    isAdmin INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'ativo' CHECK(status IN ('ativo', 'inativo')),
+
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_usuarios_email ON usuarios(email);
+CREATE INDEX IF NOT EXISTS idx_usuarios_isAdmin ON usuarios(isAdmin);
+CREATE INDEX IF NOT EXISTS idx_usuarios_status ON usuarios(status);
 
 
 CREATE TABLE IF NOT EXISTS smtp_config (
@@ -38,9 +43,5 @@ INSERT OR IGNORE INTO smtp_config (
     1
 );
 
-CREATE INDEX IF NOT EXISTS idx_usuarios_email
-ON usuarios(email);
-
 CREATE INDEX IF NOT EXISTS idx_usuarios_wfa
 ON usuarios(email, wfa_code);
-

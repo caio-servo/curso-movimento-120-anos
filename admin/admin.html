@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<header class="admin-header">
+    <div class="admin-header-container">
+        <h1>Painel Administrativo</h1>
+        <a href="/membros/" class="btn-back">← Voltar</a>
+    </div>
+</header>
+
+<main class="container">
+
+    <!-- Dashboard -->
+    <div class="dashboard">
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <div class="dashboard-icon">👥</div>
+                <div class="dashboard-card-title">Total de Clientes</div>
+            </div>
+            <div class="dashboard-card-value" id="totalClientes">0</div>
+            <div class="dashboard-card-footer">Clientes cadastrados</div>
+        </div>
+
+        <div class="dashboard-card card-ativo">
+            <div class="dashboard-card-header">
+                <div class="dashboard-icon">✓</div>
+                <div class="dashboard-card-title">Clientes Ativos</div>
+            </div>
+            <div class="dashboard-card-value" id="clientesAtivos">0</div>
+            <div class="dashboard-card-footer">Usuários ativos no sistema</div>
+        </div>
+
+        <div class="dashboard-card card-inativo">
+            <div class="dashboard-card-header">
+                <div class="dashboard-icon">⏸</div>
+                <div class="dashboard-card-title">Clientes Inativos</div>
+            </div>
+            <div class="dashboard-card-value" id="clientesInativos">0</div>
+            <div class="dashboard-card-footer">Usuários desativados</div>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <input type="text" id="searchInput" placeholder="🔍 Buscar por nome ou email">
+        <button id="btnNovo">+ Novo Cliente</button>
+    </div>
+
+    <div id="loading" class="loading">Carregando...</div>
+
+    <table id="clientesTable">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+</main>
+
+<!-- Modal -->
+<div id="modal" class="modal hidden">
+    <div class="modal-content">
+        <h2 id="modalTitle">Novo Cliente</h2>
+
+        <input type="text" id="name" placeholder="Nome completo">
+        <input type="email" id="email" placeholder="E-mail">
+        <input type="password" id="password" placeholder="Senha">
+        <input type="password" id="confirmPassword" placeholder="Confirmar Senha">
+
+        <select id="status">
+            <option value="ativo">Ativo</option>
+            <option value="inativo">Inativo</option>
+        </select>
+
+        <div class="modal-actions">
+            <button id="btnCancelar">Cancelar</button>
+            <button id="btnSalvar">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>

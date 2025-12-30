@@ -2,6 +2,7 @@ console.log('✅ Área de Membros carregada!');
 
 // ========== ELEMENTOS DO DOM ==========
 const btnProfile = document.getElementById('btnProfile');
+const btnAdmin = document.getElementById('btnAdmin');
 const btnExit = document.querySelector('.btn-exit');
 const profileModal = document.getElementById('profileModal');
 const changePasswordModal = document.getElementById('changePasswordModal');
@@ -16,7 +17,9 @@ const cards = document.querySelectorAll('.card');
 // ========== DADOS DO USUÁRIO ==========
 let userData = {
     name: 'Usuário',
-    email: 'email@exemplo.com'
+    email: 'email@exemplo.com',
+    isAdmin: false,
+    status: 'ativo'
 };
 
 const isLogged = window.localStorage.getItem("isLogged");
@@ -32,6 +35,7 @@ async function loadUserData() {
         // Tentar pegar do localStorage primeiro
         const storedName = localStorage.getItem('userName');
         const storedEmail = localStorage.getItem('userEmail');
+        const storedIsAdmin = localStorage.getItem('userIsAdmin');
         
         if (storedName) {
             userData.name = storedName;
@@ -41,6 +45,11 @@ async function loadUserData() {
         if (storedEmail) {
             userData.email = storedEmail;
             console.log('✅ Email do localStorage:', storedEmail);
+        }
+
+        if (storedIsAdmin) {
+            userData.isAdmin = storedIsAdmin === 'true';
+            console.log('✅ IsAdmin do localStorage:', userData.isAdmin);
         }
         
         // Atualizar o título do hero
@@ -68,6 +77,15 @@ async function loadUserData() {
                 userData.email = data.email;
                 localStorage.setItem('userEmail', data.email);
             }
+
+            if (data.isAdmin !== undefined) {
+                userData.isAdmin = data.isAdmin;
+                localStorage.setItem('userIsAdmin', data.isAdmin);
+            }
+
+            if (data.status) {
+                userData.status = data.status;
+            }
             
             // Atualizar novamente com dados do backend
             document.querySelector('.hero-title').textContent = `Bem-vindo, ${userData.name}!`;
@@ -75,11 +93,45 @@ async function loadUserData() {
         } else {
             console.warn('⚠️ Backend não retornou dados, usando localStorage');
         }
+
+        // Verificar se o usuário está inativo
+        if (userData.status === 'inativo') {
+            showAlert('Sua conta está inativa. Entre em contato com o suporte.', 'error');
+            setTimeout(() => {
+                logout();
+            }, 3000);
+            return;
+        }
+
+        // Mostrar botão de admin se for administrador
+        checkAdminAccess();
         
     } catch (error) {
         console.error('❌ Erro ao carregar dados do backend:', error);
         console.log('ℹ️ Usando dados do localStorage');
+        checkAdminAccess();
     }
+}
+
+// Verificar se o usuário é admin e mostrar o botão
+function checkAdminAccess() {
+    console.log('🔐 Verificando acesso admin:', userData.isAdmin);
+    
+    if (userData.isAdmin) {
+        btnAdmin.style.display = 'flex';
+        console.log('✅ Botão Admin habilitado!');
+    } else {
+        btnAdmin.style.display = 'none';
+        console.log('ℹ️ Usuário não é administrador');
+    }
+}
+
+// Event listener do botão Admin
+if (btnAdmin) {
+    btnAdmin.addEventListener('click', function() {
+        console.log('🔧 Abrindo painel administrativo...');
+        window.location.href = '/admin/admin.html';
+    });
 }
 
 // Carregar dados ao iniciar
@@ -203,6 +255,12 @@ changePasswordForm.addEventListener('submit', async function(e) {
 // ========== CARDS - NAVEGAÇÃO ==========
 cards.forEach((card) => {
     card.addEventListener('click', function() {
+        // Verificar se o usuário está inativo
+        if (userData.status === 'inativo') {
+            showAlert('Sua conta está inativa. Você não pode acessar os cursos.', 'error');
+            return;
+        }
+
         if (card.classList.contains('card-active')) {
             window.location.href = '/cursos/index.html';
         } else if (card.classList.contains('card-coming')) {
@@ -213,6 +271,22 @@ cards.forEach((card) => {
 
 // ========== BOTÃO SAIR ==========
 btnExit.addEventListener('click', showExitMessage);
+
+function logout() {
+    // Limpar localStorage
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userIsAdmin');
+    localStorage.removeItem('isLogged');
+    
+    // Fazer logout no backend
+    fetch('https://movimento120anos.ibr.com.br/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+    }).catch(err => console.error('Erro ao fazer logout:', err));
+    
+    window.location.href = '/login/index.html';
+}
 
 function showExitMessage() {
     const overlay = document.createElement('div');
@@ -271,19 +345,8 @@ function showExitMessage() {
     overlay.appendChild(message);
     document.body.appendChild(overlay);
     
-    // Limpar localStorage
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userEmail');
-    
-    // Fazer logout no backend
-    fetch('https://movimento120anos.ibr.com.br/api/logout', {
-        method: 'POST',
-        credentials: 'include'
-    }).catch(err => console.error('Erro ao fazer logout:', err));
-    
     setTimeout(() => {
-        window.location.href = '/login/index.html';
-        window.localStorage.removeItem('isLogged');
+        logout();
     }, 2000);
 }
 

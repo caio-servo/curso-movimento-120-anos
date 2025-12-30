@@ -25,7 +25,7 @@ app.use(cors({
         }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
@@ -65,6 +65,26 @@ if (process.argv.includes('--init-db')) {
     return;
 }
 
+//  MIDDLEWARE DE ADMIN 
+const requireAdmin = (req, res, next) => {
+    if (!req.session.userId) {
+        console.log('[ADMIN] Usuário não autenticado');
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+    }
+
+    db.get(
+        `SELECT isAdmin FROM usuarios WHERE id = ?`,
+        [req.session.userId],
+        (err, user) => {
+            if (err || !user || !user.isAdmin) {
+                console.log('[ADMIN] Usuário não é admin ou erro:', err);
+                return res.status(403).json({ success: false, message: 'Acesso negado' });
+            }
+            next();
+        }
+    );
+};
+
 app.get('/', (req, res) => {
     res.json({
         status: 'ok',
@@ -83,8 +103,8 @@ app.post('/register', async (req, res) => {
         const hash = await bcrypt.hash(password, 10);
 
         db.run(
-            `INSERT INTO usuarios (nome, email, senha, ultimo_login)
-             VALUES (?, ?, ?, datetime('now'))`,
+            `INSERT INTO usuarios (nome, email, senha, status, isAdmin, ultimo_login)
+             VALUES (?, ?, ?, 'ativo', 0, datetime('now'))`,
             [name, email, hash],
             function(err) {
                 if (err) {
@@ -121,6 +141,12 @@ app.post('/login', (req, res) => {
         if (!user) {
             console.log(`[LOGIN] Usuário não encontrado: ${email}`);
             return res.json({ success: false, message: 'Credenciais inválidas' });
+        }
+
+        // 🔒 Verificar se usuário está inativo
+        if (user.status === 'inativo') {
+            console.log(`[LOGIN] Usuário inativo: ${email}`);
+            return res.json({ success: false, message: 'Usuário inativo. Contate o administrador.' });
         }
 
         console.log(`[LOGIN] Usuário encontrado: ${user.email}`);
@@ -201,12 +227,13 @@ app.post('/login', (req, res) => {
 
                         console.log(`[LOGIN] Login direto bem-sucedido`);
                         
-                        // ✅ Retornar nome e email para o frontend
+                        // ✅ Retornar nome, email E isAdmin para o frontend
                         res.json({ 
                             success: true, 
                             message: 'Login realizado',
                             name: user.nome,
-                            email: user.email
+                            email: user.email,
+                            isAdmin: user.isAdmin === 1  // 🆕 ADICIONADO
                         });
                     }
                 );
@@ -261,12 +288,13 @@ app.post('/verify-2fa', (req, res) => {
                     }
                     console.log('[2FA] Verificação concluída com sucesso');
                     
-                    // ✅ Retornar nome e email para o frontend
+                    // ✅ Retornar nome, email E isAdmin para o frontend
                     res.json({ 
                         success: true, 
                         message: '2FA verificado com sucesso',
                         name: user.nome,
-                        email: user.email
+                        email: user.email,
+                        isAdmin: user.isAdmin === 1  // 🆕 ADICIONADO
                     });
                 }
             );
@@ -277,7 +305,21 @@ app.post('/verify-2fa', (req, res) => {
 // Rota para verificar se o usuário está autenticado
 app.get('/check-auth', (req, res) => {
     if (req.session.userId) {
-        res.json({ authenticated: true, email: req.session.email });
+        db.get(
+            `SELECT isAdmin, status FROM usuarios WHERE id = ?`,
+            [req.session.userId],
+            (err, user) => {
+                if (err || !user) {
+                    return res.json({ authenticated: false });
+                }
+                res.json({ 
+                    authenticated: true, 
+                    email: req.session.email,
+                    isAdmin: user.isAdmin === 1,
+                    status: user.status
+                });
+            }
+        );
     } else {
         res.json({ authenticated: false });
     }
@@ -290,7 +332,7 @@ app.get('/user-info', (req, res) => {
     }
 
     db.get(
-        `SELECT id, nome, email FROM usuarios WHERE id = ?`,
+        `SELECT id, nome, email, isAdmin, status FROM usuarios WHERE id = ?`,
         [req.session.userId],
         (err, user) => {
             if (err) {
@@ -305,7 +347,9 @@ app.get('/user-info', (req, res) => {
             res.json({
                 success: true,
                 name: user.nome,
-                email: user.email
+                email: user.email,
+                isAdmin: user.isAdmin === 1,
+                status: user.status
             });
         }
     );
@@ -386,7 +430,133 @@ app.post('/logout', (req, res) => {
     });
 });
 
+// ============================================
+// ROTAS ADMIN - GERENCIAMENTO DE CLIENTES
+// ============================================
+
+// Lista todos os clientes
+app.get('/admin/clientes', requireAdmin, (req, res) => {
+    console.log('[ADMIN] Listando clientes');
+    
+    db.all(
+        `SELECT id, nome as name, email, status, isAdmin, created_at 
+         FROM usuarios 
+         ORDER BY created_at DESC`,
+        (err, clientes) => {
+            if (err) {
+                console.error('[ADMIN] Erro ao listar:', err);
+                return res.status(500).json({ success: false, message: 'Erro no servidor' });
+            }
+
+            res.json({ 
+                success: true, 
+                clientes: clientes.map(c => ({
+                    ...c,
+                    isAdmin: c.isAdmin === 1
+                }))
+            });
+        }
+    );
+});
+
+// Cria novo cliente
+app.post('/admin/clientes/create', requireAdmin, async (req, res) => {
+    const { name, email, password, status } = req.body;
+    console.log(`[ADMIN] Criando cliente: ${email}`);
+
+    if (!name || !email || !password) {
+        return res.status(400).json({ success: false, message: 'Dados incompletos' });
+    }
+
+    try {
+        const hash = await bcrypt.hash(password, 10);
+
+        db.run(
+            `INSERT INTO usuarios (nome, email, senha, status, isAdmin, ultimo_login)
+             VALUES (?, ?, ?, ?, 0, datetime('now'))`,
+            [name.trim(), email.trim(), hash, status || 'ativo'],
+            function(err) {
+                if (err) {
+                    console.error('[ADMIN] Erro ao criar:', err);
+                    return res.status(400).json({ success: false, message: 'Email já cadastrado' });
+                }
+                res.json({ 
+                    success: true, 
+                    message: 'Cliente cadastrado com sucesso', 
+                    id: this.lastID 
+                });
+            }
+        );
+    } catch (error) {
+        console.error('[ADMIN] Erro:', error);
+        res.status(500).json({ success: false, message: 'Erro no servidor' });
+    }
+});
+
+// Atualiza cliente
+app.put('/admin/clientes/update/:id', requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { name, email, password, status } = req.body;
+    console.log(`[ADMIN] Atualizando cliente: ${id}`);
+
+    if (!name || !email) {
+        return res.status(400).json({ success: false, message: 'Dados incompletos' });
+    }
+
+    try {
+        let query = `UPDATE usuarios SET nome = ?, email = ?, status = ?`;
+        let params = [name.trim(), email.trim(), status || 'ativo'];
+
+        if (password) {
+            const hash = await bcrypt.hash(password, 10);
+            query += `, senha = ?`;
+            params.push(hash);
+        }
+
+        query += ` WHERE id = ?`;
+        params.push(id);
+
+        db.run(query, params, function(err) {
+            if (err) {
+                console.error('[ADMIN] Erro ao atualizar:', err);
+                return res.status(400).json({ success: false, message: 'Email já existe' });
+            }
+            res.json({ success: true, message: 'Cliente atualizado com sucesso' });
+        });
+    } catch (error) {
+        console.error('[ADMIN] Erro:', error);
+        res.status(500).json({ success: false, message: 'Erro no servidor' });
+    }
+});
+
+// Alterna status do cliente
+app.patch('/admin/clientes/toggle-status/:id', requireAdmin, (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    console.log(`[ADMIN] Alternando status: ${id} para ${status}`);
+
+    if (!['ativo', 'inativo'].includes(status)) {
+        return res.status(400).json({ success: false, message: 'Status inválido' });
+    }
+
+    db.run(
+        `UPDATE usuarios SET status = ? WHERE id = ?`,
+        [status, id],
+        function(err) {
+            if (err) {
+                console.error('[ADMIN] Erro ao alternar:', err);
+                return res.status(500).json({ success: false, message: 'Erro no servidor' });
+            }
+            res.json({ success: true, message: 'Status alterado com sucesso' });
+        }
+    );
+});
+
+// ============================================
+// INICIAR SERVIDOR
+// ============================================
+
 const PORT = 3000;
 app.listen(PORT, () => {
-    console.log(`Backend rodando em http://localhost:${PORT}`);
+    console.log(`✅ Backend rodando em http://localhost:${PORT}`);
 });
