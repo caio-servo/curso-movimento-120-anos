@@ -139,7 +139,7 @@ function performRegister(name, email, password) {
     btnRegister.textContent = 'CRIANDO CONTA...';
     btnRegister.style.opacity = '0.7';
 
-    fetch('http://localhost:3000/register', {
+    fetch('https://movimento120anos.ibr.com.br/api/register', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -155,7 +155,7 @@ function performRegister(name, email, password) {
         if (data.success) {
             showSuccess('Conta criada com sucesso!');
             setTimeout(() => {
-                window.location.href = '../login/index.html';
+                // window.location.href = '../login/index.html';
             }, 1500);
         } else {
             showError(data.message || 'Erro ao criar conta!');

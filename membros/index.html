@@ -9,7 +9,17 @@
 <body>
     <header class="header">
         <div class="header-container">
-            <button class="btn-exit">Sair</button>
+            <div class="header-right">
+                <!-- Botão do Menu de Perfil -->
+                <button class="btn-profile" id="btnProfile">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Perfil</span>
+                </button>
+                <button class="btn-exit">Sair</button>
+            </div>
         </div>
     </header>
 
@@ -64,6 +74,122 @@
             </div>
         </div>
     </section>
+
+    <!-- Modal de Perfil -->
+    <div class="profile-modal" id="profileModal">
+        <div class="profile-modal-overlay" id="modalOverlay"></div>
+        <div class="profile-modal-content">
+            <div class="profile-modal-header">
+                <h2>Meu Perfil</h2>
+                <button class="btn-close-modal" id="btnCloseModal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="profile-modal-body">
+                <!-- Avatar -->
+                <div class="profile-avatar">
+                    <div class="avatar-circle">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Informações do Usuário -->
+                <div class="profile-info">
+                    <div class="info-item">
+                        <label>Nome</label>
+                        <div class="info-value" id="userName">Carregando...</div>
+                    </div>
+
+                    <div class="info-item">
+                        <label>E-mail</label>
+                        <div class="info-value" id="userEmail">Carregando...</div>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Senha</label>
+                        <div class="info-value password-hidden">••••••••</div>
+                    </div>
+                </div>
+
+                <!-- Botão Trocar Senha -->
+                <button class="btn-change-password" id="btnChangePassword">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    Trocar Senha
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Trocar Senha -->
+    <div class="change-password-modal" id="changePasswordModal">
+        <div class="profile-modal-overlay" id="changePasswordOverlay"></div>
+        <div class="profile-modal-content">
+            <div class="profile-modal-header">
+                <h2>Trocar Senha</h2>
+                <button class="btn-close-modal" id="btnCloseChangePassword">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="profile-modal-body">
+                <form id="changePasswordForm" class="change-password-form">
+                    <div class="form-group">
+                        <label for="currentPassword">Senha Atual</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="currentPassword" placeholder="Digite sua senha atual" required>
+                            <button type="button" class="toggle-password-btn" data-target="currentPassword">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newPassword">Nova Senha</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="newPassword" placeholder="Digite sua nova senha" required>
+                            <button type="button" class="toggle-password-btn" data-target="newPassword">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmar Nova Senha</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="confirmPassword" placeholder="Confirme sua nova senha" required>
+                            <button type="button" class="toggle-password-btn" data-target="confirmPassword">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit-password">Salvar Nova Senha</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

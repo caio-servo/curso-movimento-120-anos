@@ -1,189 +1,81 @@
-const inputs = document.querySelectorAll('.code-input');
-const verifyBtn = document.getElementById('verifyBtn');
-const resendLink = document.getElementById('resendLink');
-const errorMessage = document.getElementById('errorMessage');
-const successMessage = document.getElementById('successMessage');
-const form = document.getElementById('verificationForm');
+// Seleciona elementos uma única vez
+const loginForm = document.getElementById('loginForm');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const toggleBtn = document.getElementById('togglePassword');
 
-let resendTimer = null;
-let resendCountdown = 60;
+// Função para mostrar erros
+function showError(msg) {
+    alert(msg);
+}
 
-// Auto-focus e navegação entre inputs
-inputs.forEach((input, index) => {
-    input.addEventListener('input', (e) => {
-        const value = e.target.value;
-        
-        // Aceita apenas números
-        if (!/^\d*$/.test(value)) {
-            e.target.value = '';
+// Função de login
+function performLogin(email, password) {
+    const btn = document.querySelector('.btn-login');
+    const original = btn.textContent;
+
+    btn.disabled = true;
+    btn.textContent = 'CARREGANDO...';
+
+    fetch('https://movimento120anos.ibr.com.br/api/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log('Resposta login:', data);
+
+        if (data.require2FA) {
+            // Vai para tela de 2FA e PARA por aqui
+            console.log('Requer 2FA, redirecionando...');
+            localStorage.setItem('2fa_email', data.email);
+            window.location.href = '../2fa/index.html';
+            return; // IMPORTANTE: retorna aqui para não continuar
+        }
+
+        if (data.success) {
+            // Login bem-sucedido, vai para membros
+            console.log('Login sucesso, redirecionando para membros...');
+            btn.textContent = 'REDIRECIONANDO...';
+            window.location.href = '../membros/index.html';
+        } else {
+            // Erro no login
+            showError(data.message || 'Credenciais inválidas');
+            btn.disabled = false;
+            btn.textContent = original;
+        }
+    })
+    .catch(err => {
+        console.error('Erro:', err);
+        showError('Erro ao realizar login');
+        btn.disabled = false;
+        btn.textContent = original;
+    });
+}
+
+// Event listeners (adicionar apenas uma vez)
+if (loginForm) {
+    loginForm.addEventListener('submit', e => {
+        e.preventDefault();
+
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        if (!email || !password) {
+            showError('Preencha todos os campos');
             return;
         }
 
-        // Move para o próximo input
-        if (value && index < inputs.length - 1) {
-            inputs[index + 1].focus();
-        }
-
-        // Verifica se todos os campos estão preenchidos
-        checkAllFilled();
+        performLogin(email, password);
     });
+}
 
-    input.addEventListener('keydown', (e) => {
-        // Backspace: volta para o input anterior
-        if (e.key === 'Backspace' && !input.value && index > 0) {
-            inputs[index - 1].focus();
-        }
-
-        // Setas de navegação
-        if (e.key === 'ArrowLeft' && index > 0) {
-            inputs[index - 1].focus();
-        }
-        if (e.key === 'ArrowRight' && index < inputs.length - 1) {
-            inputs[index + 1].focus();
-        }
-    });
-
-    input.addEventListener('paste', (e) => {
+// Toggle visibilidade da senha
+if (toggleBtn) {
+    toggleBtn.addEventListener('click', e => {
         e.preventDefault();
-        const pastedData = e.clipboardData.getData('text').trim();
-        
-        // Aceita apenas 6 dígitos
-        if (/^\d{6}$/.test(pastedData)) {
-            pastedData.split('').forEach((char, i) => {
-                if (inputs[i]) {
-                    inputs[i].value = char;
-                }
-            });
-            inputs[5].focus();
-            checkAllFilled();
-        }
+        passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
     });
-});
-
-// Foca no primeiro input ao carregar
-inputs[0].focus();
-
-function checkAllFilled() {
-    const allFilled = Array.from(inputs).every(input => input.value !== '');
-    verifyBtn.disabled = !allFilled;
 }
-
-function showError(message) {
-    errorMessage.textContent = message;
-    errorMessage.classList.add('show');
-    successMessage.classList.remove('show');
-    
-    setTimeout(() => {
-        errorMessage.classList.remove('show');
-    }, 5000);
-}
-
-function showSuccess(message) {
-    successMessage.textContent = message;
-    successMessage.classList.add('show');
-    errorMessage.classList.remove('show');
-}
-
-function clearInputs() {
-    inputs.forEach(input => input.value = '');
-    inputs[0].focus();
-}
-
-function startResendTimer() {
-    resendCountdown = 60;
-    resendLink.classList.add('disabled');
-    
-    resendTimer = setInterval(() => {
-        resendCountdown--;
-        resendLink.innerHTML = `Reenviar em <span class="timer">${resendCountdown}s</span>`;
-        
-        if (resendCountdown <= 0) {
-            clearInterval(resendTimer);
-            resendLink.classList.remove('disabled');
-            resendLink.textContent = 'Reenviar código';
-        }
-    }, 1000);
-}
-
-// Submissão do formulário
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const code = Array.from(inputs).map(input => input.value).join('');
-    
-    verifyBtn.disabled = true;
-    verifyBtn.textContent = 'VERIFICANDO...';
-    
-    try {
-        // Aqui você faria a chamada para o backend
-        const response = await fetch('http://localhost:3000/verify-2fa', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                code,
-                email: localStorage.getItem('2fa_email') // Email salvo do login
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showSuccess('Código verificado com sucesso!');
-            setTimeout(() => {
-                // Redireciona para a página principal
-                window.location.href = '../membros/index.html';
-            }, 1500);
-        } else {
-            showError(data.message || 'Código inválido. Tente novamente.');
-            clearInputs();
-        }
-    } catch (error) {
-        console.error('Erro na verificação:', error);
-        showError('Erro ao verificar código. Tente novamente.');
-        clearInputs();
-    } finally {
-        verifyBtn.disabled = false;
-        verifyBtn.textContent = 'VERIFICAR CÓDIGO';
-        checkAllFilled();
-    }
-});
-
-// Reenvio de código
-resendLink.addEventListener('click', async (e) => {
-    e.preventDefault();
-    
-    if (resendLink.classList.contains('disabled')) {
-        return;
-    }
-    
-    try {
-         const response = await fetch('http://localhost:3000/resend-2fa', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                email: localStorage.getItem('2fa_email')
-            })
-        });
-       
-        const data = await response.json();
-        
-        if (data.success) {
-            showSuccess('Código reenviado com sucesso!');
-            startResendTimer();
-        } else {
-            showError(data.message || 'Erro ao reenviar código.');
-        }
-    } catch (error) {
-        console.error('Erro ao reenviar:', error);
-        showError('Erro ao reenviar código. Tente novamente.');
-    }
-});
-
-// Inicia o timer ao carregar a página
-startResendTimer();
