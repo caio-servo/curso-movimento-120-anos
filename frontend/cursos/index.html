@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curso - Movimento 120 anos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- VISTA DO USUÁRIO -->
+    <div class="course-container" id="userView" style="display: none;">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <button class="btn-back" id="btnBack">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                <h3>Conteúdo do curso</h3>
+            </div>
+
+            <div class="modules-list" id="modulesList">
+                <!-- Módulos carregados aqui -->
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="video-header">
+                <div class="header-title">
+                    <h2 id="headerTitle">Carregando...</h2>
+                </div>
+                <div class="header-info">
+                    <span class="progress" id="progress">Seu Progresso: 0 de 0 (0%)</span>
+                    <button class="btn-complete" id="btnComplete">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        MARCAR COMO CONCLUÍDO
+                    </button>
+                </div>
+                <button class="btn-close" id="btnClose">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="content-wrapper">
+                <div class="video-section">
+                    <div class="video-container">
+                        <iframe id="youtubePlayer" width="100%" height="100%" src="" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                    </div>
+
+                    <div class="tabs-section">
+                        <div class="tabs">
+                            <button class="tab active" data-tab="visao-geral">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                                </svg>
+                                Visão geral
+                            </button>
+                            <button class="tab" data-tab="arquivos">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                                </svg>
+                                Arquivos
+                            </button>
+                        </div>
+
+                        <div class="tab-content">
+                            <div class="tab-panel active" id="visao-geral">
+                                <div class="lesson-info">
+                                    <h3 id="lessonTitle">Carregando...</h3>
+                                    <p id="lessonDescription">Carregando descrição...</p>
+                                </div>
+                            </div>
+
+                            <div class="tab-panel" id="arquivos">
+                                <div class="files-section">
+                                    <div class="files-list" id="filesList">
+                                        <p class="no-files">Nenhum arquivo disponível</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- VISTA DO ADMIN -->
+    <div class="admin-container" id="adminView" style="display: none;">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Módulos</h3>
+                <button class="btn-add-module" id="btnAddModule" title="Novo Módulo">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modules-list" id="adminModulesList">
+                <!-- Módulos para admin -->
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h2 id="mainTitle">Selecione um módulo</h2>
+                <div class="header-buttons">
+                    <button class="btn-back-members" id="btnBackToMembers">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 6px;">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                        Voltar para Membros
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-area" id="contentArea">
+                <!-- Aulas carregadas aqui -->
+            </div>
+
+            <div class="empty-state-main" id="emptyMain" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                    <path d="M2 17l10 5 10-5"></path>
+                    <path d="M2 12l10 5 10-5"></path>
+                </svg>
+                <h3>Selecione um módulo</h3>
+                <p>ou crie um novo para começar</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL MÓDULO -->
+    <div class="modal" id="moduleModal">
+        <div class="modal-overlay" id="moduleModalOverlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="moduleModalTitle">Novo Módulo</h2>
+                <button class="btn-close" id="btnCloseModuleModal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="moduleForm">
+                    <div class="form-group">
+                        <label for="moduleName">Nome do Módulo</label>
+                        <input type="text" id="moduleName" placeholder="Ex: Módulo 1 - Introdução" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="moduleDescription">Descrição</label>
+                        <textarea id="moduleDescription" placeholder="Descrição do módulo" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" id="btnCancelModule">Cancelar</button>
+                        <button type="submit" class="btn-save">Salvar Módulo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AULA -->
+    <div class="modal" id="lessonModal">
+        <div class="modal-overlay" id="lessonModalOverlay"></div>
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2 id="lessonModalTitle">Nova Aula</h2>
+                <button class="btn-close" id="btnCloseLessonModal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="lessonForm">
+                    <input type="hidden" id="lessonModuleId">
+                    
+                    <div class="form-group">
+                        <label for="lessonTitleInput">Título da Aula</label>
+                        <input type="text" id="lessonTitleInput" placeholder="Ex: AULA 1 - Boas-vindas" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lessonDescription">Descrição</label>
+                        <textarea id="lessonDescription" placeholder="Descrição da aula" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="youtubeLink">Link do YouTube</label>
+                        <input type="url" id="youtubeLink" placeholder="https://www.youtube.com/watch?v=..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lessonDuration">Duração (HH:MM)</label>
+                        <input type="text" id="lessonDuration" placeholder="10:30" pattern="\d{1,2}:\d{2}" required>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" id="btnCancelLesson">Cancelar</button>
+                        <button type="submit" class="btn-save">Salvar Aula</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=1"></script>
+</body>
+</html>

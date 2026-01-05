@@ -21,13 +21,20 @@ app.use(cors({
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            callback(new Error('CORS não permitido'));
+            callback(null, true);
         }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+app.use((req, res, next)=>{
+    console.log("req", req.method);
+    next();
+})
+
+// app.use(cors());
 
 // Parsers
 app.use(express.json());
@@ -162,10 +169,10 @@ app.post('/login', (req, res) => {
             console.log('[LOGIN] Senha correta');
             
             //Habilita 2FA 
-            // const need2FA = needs2FA(user.last_2fa_at);
+            const need2FA = needs2FA(user.last_2fa_at);
             
             // DESABILITAR 2FA 
-            const need2FA = false; 
+            //const need2FA = false; 
             
             console.log(`[LOGIN] Precisa 2FA? ${need2FA}, last_2fa_at: ${user.last_2fa_at}`);
 
@@ -428,6 +435,47 @@ app.post('/logout', (req, res) => {
         res.clearCookie('movimento.sid');
         res.json({ success: true, message: 'Logout realizado' });
     });
+});
+
+
+// Adicione ANTES da linha 599 (antes do POST /modulos/:cursoId)
+
+// POST - Criar módulo recebendo curso_id no body
+app.post('/modulos', requireAdmin, (req, res) => {
+    const { curso_id, nome, descricao } = req.body;
+    console.log(`[MODULOS] Criando módulo "${nome}" para curso ${curso_id}`);
+
+    if (!curso_id || !nome) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'curso_id e nome são obrigatórios' 
+        });
+    }
+
+    db.run(
+        `INSERT INTO modulos (nome, descricao, curso_id, created_at)
+         VALUES (?, ?, ?, datetime('now'))`,
+        [nome.trim(), descricao?.trim() || '', curso_id],
+        function(err) {
+            if (err) {
+                console.error('[MODULOS] Erro ao criar:', err);
+                return res.status(500).json({ success: false, message: 'Erro ao criar módulo' });
+            }
+
+            console.log(`[MODULOS] Módulo criado com ID: ${this.lastID}`);
+            res.json({ 
+                success: true, 
+                message: 'Módulo criado com sucesso',
+                id: this.lastID,
+                modulo: {
+                    id: this.lastID,
+                    nome,
+                    descricao: descricao || '',
+                    curso_id
+                }
+            });
+        }
+    );
 });
 
 // ============================================
@@ -724,12 +772,13 @@ app.delete('/cursos/:id', requireAdmin, (req, res) => {
 // ============================================
 
 // GET - Listar todos os módulos e aulas
-app.get('/modulos', (req, res) => {
+app.get('/modulos/:cursoId', (req, res) => {
+    const { cursoId } = req.params;
     console.log('[MODULOS] Listando módulos e aulas');
     
     db.all(
         `SELECT id, nome, descricao, created_at 
-         FROM modulos 
+         FROM modulos where curso_id = ${cursoId}
          ORDER BY created_at DESC`,
         (err, modulos) => {
             if (err) {
@@ -738,9 +787,11 @@ app.get('/modulos', (req, res) => {
             }
 
             db.all(
-                `SELECT id, modulo_id, titulo, descricao, youtube_id, duracao, created_at 
-                 FROM aulas 
-                 ORDER BY modulo_id, created_at ASC`,
+                `SELECT a.id, a.modulo_id, a.titulo, a.descricao, a.youtube_id, a.duracao, a.created_at 
+                 FROM aulas a
+                 inner join modulos m on m.id = a.modulo_id
+                 where m.curso_id = ${cursoId}
+                 ORDER BY a.modulo_id, a.created_at ASC`,
                 (err, aulas) => {
                     if (err) {
                         console.error('[MODULOS] Erro ao listar aulas:', err);
@@ -758,8 +809,12 @@ app.get('/modulos', (req, res) => {
     );
 });
 
+
+
+
 // POST - Criar novo módulo (apenas admin)
-app.post('/modulos', requireAdmin, (req, res) => {
+app.post('/modulos/:cursoId', requireAdmin, (req, res) => {
+    const { cursoId } = req.params;
     const { nome, descricao } = req.body;
     console.log(`[MODULOS] Criando novo módulo: ${nome}`);
 
@@ -770,7 +825,7 @@ app.post('/modulos', requireAdmin, (req, res) => {
     db.run(
         `INSERT INTO modulos (nome, descricao, curso_id, created_at)
          VALUES (?, ?, ?, datetime('now'))`,
-        [nome.trim(), descricao?.trim() || ''],
+        [nome.trim(), descricao?.trim() || '', cursoId],
         function(err) {
             if (err) {
                 console.error('[MODULOS] Erro ao criar:', err);
