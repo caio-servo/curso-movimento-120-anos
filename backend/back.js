@@ -161,11 +161,11 @@ app.post('/login', (req, res) => {
 
             console.log('[LOGIN] Senha correta');
             
-            // ========== COMENTAR ESTA LINHA PARA DESABILITAR 2FA ==========
+            //Habilita 2FA 
             // const need2FA = needs2FA(user.last_2fa_at);
             
-            // ========== DESCOMENTAR ESTA LINHA PARA DESABILITAR 2FA ==========
-            const need2FA = false; // Forçar login direto sem 2FA
+            // DESABILITAR 2FA 
+            const need2FA = false; 
             
             console.log(`[LOGIN] Precisa 2FA? ${need2FA}, last_2fa_at: ${user.last_2fa_at}`);
 
@@ -551,10 +551,433 @@ app.patch('/admin/clientes/toggle-status/:id', requireAdmin, (req, res) => {
         }
     );
 });
+// DELETE - Excluir cliente (apenas admin)
+app.delete('/admin/clientes/:id', requireAdmin, (req, res) => {
+    const { id } = req.params;
+    console.log(`[ADMIN] Deletando cliente: ${id}`);
+
+    if (!id) {
+        return res.status(400).json({ success: false, message: 'ID do cliente é obrigatório' });
+    }
+
+    db.run(
+        `DELETE FROM usuarios WHERE id = ?`,
+        [id],
+        function(err) {
+            if (err) {
+                console.error('[ADMIN] Erro ao deletar:', err);
+                return res.status(500).json({ success: false, message: 'Erro ao deletar cliente' });
+            }
+
+            if (this.changes === 0) {
+                return res.status(404).json({ success: false, message: 'Cliente não encontrado' });
+            }
+
+            console.log(`[ADMIN] Cliente ${id} deletado com sucesso`);
+            res.json({ 
+                success: true, 
+                message: 'Cliente deletado com sucesso' 
+            });
+        }
+    );
+});
 
 // ============================================
-// INICIAR SERVIDOR
+// ROTAS PARA GERENCIAMENTO DE CURSOS (ADMIN)
 // ============================================
+
+// GET - Listar todos os cursos
+app.get('/cursos/', (req, res) => {
+    console.log('[CURSOS] Listando cursos');
+    
+    db.all(
+        `SELECT id, nome, descricao, tipo, disponivel, created_at 
+         FROM cursos 
+         ORDER BY created_at DESC`,
+        (err, cursos) => {
+            if (err) {
+                console.error('[CURSOS] Erro ao listar:', err);
+                return res.status(500).json({ success: false, message: 'Erro no servidor' });
+            }
+
+            res.json({ 
+                success: true, 
+                cursos: cursos.map(c => ({
+                    ...c,
+                    disponivel: c.disponivel === 1
+                }))
+            });
+        }
+    );
+});
+
+// POST - Criar novo curso (apenas admin)
+app.post('/cursos/', requireAdmin, (req, res) => {
+    const { nome, descricao, tipo, disponivel } = req.body;
+    console.log(`[CURSOS] Criando novo curso: ${nome}`);
+
+    if (!nome || !descricao || !tipo) {
+        return res.status(400).json({ success: false, message: 'Dados incompletos' });
+    }
+
+    const disponibilidade = disponivel === true || disponivel === 'true' ? 1 : 0;
+
+    db.run(
+        `INSERT INTO cursos (nome, descricao, tipo, disponivel, created_at, updated_at)
+         VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
+        [nome.trim(), descricao.trim(), tipo, disponibilidade],
+        function(err) {
+            if (err) {
+                console.error('[CURSOS] Erro ao criar:', err);
+                return res.status(500).json({ success: false, message: 'Erro ao criar curso' });
+            }
+
+            console.log(`[CURSOS] Curso criado com ID: ${this.lastID}`);
+            res.json({ 
+                success: true, 
+                message: 'Curso criado com sucesso',
+                id: this.lastID,
+                curso: {
+                    id: this.lastID,
+                    nome,
+                    descricao,
+                    tipo,
+                    disponivel: disponibilidade === 1
+                }
+            });
+        }
+    );
+});
+
+// PUT - Atualizar curso (apenas admin)
+app.put('/cursos/:id', requireAdmin, (req, res) => {
+    const { id } = req.params;
+    const { nome, descricao, tipo, disponivel } = req.body;
+    console.log(`[CURSOS] Atualizando curso: ${id}`);
+
+    if (!nome || !descricao || !tipo) {
+        return res.status(400).json({ success: false, message: 'Dados incompletos' });
+    }
+
+    const disponibilidade = disponivel === true || disponivel === 'true' ? 1 : 0;
+
+    db.run(
+        `UPDATE cursos 
+         SET nome = ?, descricao = ?, tipo = ?, disponivel = ?, updated_at = datetime('now')
+         WHERE id = ?`,
+        [nome.trim(), descricao.trim(), tipo, disponibilidade, id],
+        function(err) {
+            if (err) {
+                console.error('[CURSOS] Erro ao atualizar:', err);
+                return res.status(500).json({ success: false, message: 'Erro ao atualizar curso' });
+            }
+
+            if (this.changes === 0) {
+                return res.status(404).json({ success: false, message: 'Curso não encontrado' });
+            }
+
+            console.log(`[CURSOS] Curso ${id} atualizado com sucesso`);
+            res.json({ 
+                success: true, 
+                message: 'Curso atualizado com sucesso',
+                curso: {
+                    id,
+                    nome,
+                    descricao,
+                    tipo,
+                    disponivel: disponibilidade === 1
+                }
+            });
+        }
+    );
+});
+
+// DELETE - Excluir curso (apenas admin)
+app.delete('/cursos/:id', requireAdmin, (req, res) => {
+    const { id } = req.params;
+    console.log(`[CURSOS] Excluindo curso: ${id}`);
+
+    db.run(
+        `DELETE FROM cursos WHERE id = ?`,
+        [id],
+        function(err) {
+            if (err) {
+                console.error('[CURSOS] Erro ao excluir:', err);
+                return res.status(500).json({ success: false, message: 'Erro ao excluir curso' });
+            }
+
+            if (this.changes === 0) {
+                return res.status(404).json({ success: false, message: 'Curso não encontrado' });
+            }
+
+            console.log(`[CURSOS] Curso ${id} excluído com sucesso`);
+            res.json({ 
+                success: true, 
+                message: 'Curso excluído com sucesso' 
+            });
+        }
+    );
+});
+
+// ============================================
+// ROTAS PARA GERENCIAMENTO DE MÓDULOS (ADMIN)
+// ============================================
+
+// GET - Listar todos os módulos e aulas
+app.get('/modulos', (req, res) => {
+    console.log('[MODULOS] Listando módulos e aulas');
+    
+    db.all(
+        `SELECT id, nome, descricao, created_at 
+         FROM modulos 
+         ORDER BY created_at DESC`,
+        (err, modulos) => {
+            if (err) {
+                console.error('[MODULOS] Erro ao listar módulos:', err);
+                return res.status(500).json({ success: false, message: 'Erro no servidor' });
+            }
+
+            db.all(
+                `SELECT id, modulo_id, titulo, descricao, youtube_id, duracao, created_at 
+                 FROM aulas 
+                 ORDER BY modulo_id, created_at ASC`,
+                (err, aulas) => {
+                    if (err) {
+                        console.error('[MODULOS] Erro ao listar aulas:', err);
+                        return res.status(500).json({ success: false, message: 'Erro no servidor' });
+                    }
+
+                    res.json({ 
+                        success: true, 
+                        modulos: modulos || [],
+                        aulas: aulas || []
+                    });
+                }
+            );
+        }
+    );
+});
+
+// POST - Criar novo módulo (apenas admin)
+app.post('/modulos', requireAdmin, (req, res) => {
+    const { nome, descricao } = req.body;
+    console.log(`[MODULOS] Criando novo módulo: ${nome}`);
+
+    if (!nome) {
+        return res.status(400).json({ success: false, message: 'Nome do módulo é obrigatório' });
+    }
+
+    db.run(
+        `INSERT INTO modulos (nome, descricao, curso_id, created_at)
+         VALUES (?, ?, ?, datetime('now'))`,
+        [nome.trim(), descricao?.trim() || ''],
+        function(err) {
+            if (err) {
+                console.error('[MODULOS] Erro ao criar:', err);
+                return res.status(500).json({ success: false, message: 'Erro ao criar módulo' });
+            }
+
+            console.log(`[MODULOS] Módulo criado com ID: ${this.lastID}`);
+            res.json({ 
+                success: true, 
+                message: 'Módulo criado com sucesso',
+                id: this.lastID,
+                modulo: {
+                    id: this.lastID,
+                    nome,
+                    descricao: descricao || ''
+                }
+            });
+        }
+    );
+});
+
+// PUT - Atualizar módulo (apenas admin)
+app.put('/modulos/:id', requireAdmin, (req, res) => {
+    const { id } = req.params;
+    const { nome, descricao } = req.body;
+    console.log(`[MODULOS] Atualizando módulo: ${id}`);
+
+    if (!nome) {
+        return res.status(400).json({ success: false, message: 'Nome do módulo é obrigatório' });
+    }
+
+    db.run(
+         `UPDATE modulos 
+         SET nome = ?, descricao = ?
+         WHERE id = ?`,
+        [nome.trim(), descricao?.trim() || '', id],
+        function(err) {
+            if (err) {
+                console.error('[MODULOS] Erro ao atualizar:', err);
+                return res.status(500).json({ success: false, message: 'Erro ao atualizar módulo' });
+            }
+
+            if (this.changes === 0) {
+                return res.status(404).json({ success: false, message: 'Módulo não encontrado' });
+            }
+
+            console.log(`[MODULOS] Módulo ${id} atualizado com sucesso`);
+            res.json({ 
+                success: true, 
+                message: 'Módulo atualizado com sucesso',
+                modulo: {
+                    id,
+                    nome,
+                    descricao: descricao || ''
+                }
+            });
+        }
+    );
+});
+
+// DELETE - Excluir módulo (apenas admin)
+app.delete('/modulos/:id', requireAdmin, (req, res) => {
+    const { id } = req.params;
+    console.log(`[MODULOS] Excluindo módulo: ${id}`);
+
+    db.run(
+        `DELETE FROM aulas WHERE modulo_id = ?`,
+        [id],
+        (err) => {
+            if (err) {
+                console.error('[MODULOS] Erro ao deletar aulas:', err);
+                return res.status(500).json({ success: false, message: 'Erro ao deletar' });
+            }
+
+            db.run(
+                `DELETE FROM modulos WHERE id = ?`,
+                [id],
+                function(err) {
+                    if (err) {
+                        console.error('[MODULOS] Erro ao deletar:', err);
+                        return res.status(500).json({ success: false, message: 'Erro ao deletar módulo' });
+                    }
+
+                    if (this.changes === 0) {
+                        return res.status(404).json({ success: false, message: 'Módulo não encontrado' });
+                    }
+
+                    console.log(`[MODULOS] Módulo ${id} e suas aulas foram excluídos`);
+                    res.json({ 
+                        success: true, 
+                        message: 'Módulo excluído com sucesso' 
+                    });
+                }
+            );
+        }
+    );
+});
+
+// ============================================
+// ROTAS PARA GERENCIAMENTO DE AULAS (ADMIN)
+// ============================================
+
+// POST - Criar nova aula (apenas admin)
+app.post('/aulas', requireAdmin, (req, res) => {
+    const { modulo_id, titulo, descricao, youtube_id, duracao } = req.body;
+    console.log(`[AULAS] Criando nova aula: ${titulo}`);
+
+    if (!modulo_id || !titulo || !youtube_id) {
+        return res.status(400).json({ success: false, message: 'Dados obrigatórios faltando' });
+    }
+
+    db.run(
+        `INSERT INTO aulas (modulo_id, titulo, descricao, youtube_id, duracao, created_at)
+         VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+        [modulo_id, titulo.trim(), descricao?.trim() || '', youtube_id, duracao || ''],
+        function(err) {
+            if (err) {
+                console.error('[AULAS] Erro ao criar:', err);
+                return res.status(500).json({ success: false, message: 'Erro ao criar aula' });
+            }
+
+            console.log(`[AULAS] Aula criada com ID: ${this.lastID}`);
+            res.json({ 
+                success: true, 
+                message: 'Aula criada com sucesso',
+                id: this.lastID,
+                aula: {
+                    id: this.lastID,
+                    modulo_id,
+                    titulo,
+                    descricao: descricao || '',
+                    youtube_id,
+                    duracao: duracao || ''
+                }
+            });
+        }
+    );
+});
+
+// PUT - Atualizar aula (apenas admin)
+app.put('/aulas/:id', requireAdmin, (req, res) => {
+    const { id } = req.params;
+    const { modulo_id, titulo, descricao, youtube_id, duracao } = req.body;
+    console.log(`[AULAS] Atualizando aula: ${id}`);
+
+    if (!modulo_id || !titulo || !youtube_id) {
+        return res.status(400).json({ success: false, message: 'Dados obrigatórios faltando' });
+    }
+
+    db.run(
+        `UPDATE aulas 
+         SET modulo_id = ?, titulo = ?, descricao = ?, youtube_id = ?, duracao = ?
+         WHERE id = ?`,
+        [modulo_id, titulo.trim(), descricao?.trim() || '', youtube_id, duracao || '', id],
+        function(err) {
+            if (err) {
+                console.error('[AULAS] Erro ao atualizar:', err);
+                return res.status(500).json({ success: false, message: 'Erro ao atualizar aula' });
+            }
+
+            if (this.changes === 0) {
+                return res.status(404).json({ success: false, message: 'Aula não encontrada' });
+            }
+
+            console.log(`[AULAS] Aula ${id} atualizada com sucesso`);
+            res.json({ 
+                success: true, 
+                message: 'Aula atualizada com sucesso',
+                aula: {
+                    id,
+                    modulo_id,
+                    titulo,
+                    descricao: descricao || '',
+                    youtube_id,
+                    duracao: duracao || ''
+                }
+            });
+        }
+    );
+});
+
+// DELETE - Excluir aula (apenas admin)
+app.delete('/aulas/:id', requireAdmin, (req, res) => {
+    const { id } = req.params;
+    console.log(`[AULAS] Excluindo aula: ${id}`);
+
+    db.run(
+        `DELETE FROM aulas WHERE id = ?`,
+        [id],
+        function(err) {
+            if (err) {
+                console.error('[AULAS] Erro ao deletar:', err);
+                return res.status(500).json({ success: false, message: 'Erro ao deletar aula' });
+            }
+
+            if (this.changes === 0) {
+                return res.status(404).json({ success: false, message: 'Aula não encontrada' });
+            }
+
+            console.log(`[AULAS] Aula ${id} excluída com sucesso`);
+            res.json({ 
+                success: true, 
+                message: 'Aula excluída com sucesso' 
+            });
+        }
+    );
+});
 
 const PORT = 3000;
 app.listen(PORT, () => {

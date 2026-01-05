@@ -66,7 +66,7 @@ function renderizar(lista) {
     tbody.innerHTML = '';
 
     if (lista.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum cliente encontrado</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum cliente encontrado</td></tr>';
         return;
     }
 
@@ -79,9 +79,10 @@ function renderizar(lista) {
             <td><span class="status-badge status-${c.status}">${c.status || 'ativo'}</span></td>
             <td class="action-buttons">
                 <button class="btn-action btn-edit" onclick="editar(${c.id})">Editar</button>
-                <button class="btn-action btn-delete" onclick="toggleStatus(${c.id}, '${c.status}')">
+                <button class="btn-action btn-toggle" onclick="toggleStatus(${c.id}, '${c.status}')">
                     ${c.status === 'ativo' ? 'Inativar' : 'Ativar'}
                 </button>
+                <button class="btn-action btn-delete" onclick="deletarCliente(${c.id}, '${c.name}')">Deletar</button>
             </td>
         `;
 
@@ -241,5 +242,58 @@ async function toggleStatus(id, statusAtual) {
     } catch (err) {
         console.error('Erro ao toggle:', err);
         alert('Erro ao alterar status: ' + err.message);
+    }
+}
+
+async function deletarCliente(id, nome) {
+    if (!confirm(`Tem certeza que deseja deletar o cliente "${nome}"?`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`https://movimento120anos.ibr.com.br/api/admin/clientes/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        });
+
+        console.log('Status:', res.status);
+
+        // Se não for JSON, tenta parse mesmo assim
+        const contentType = res.headers.get('content-type');
+        let data;
+
+        if (contentType && contentType.includes('application/json')) {
+            data = await res.json();
+        } else {
+            const text = await res.text();
+            console.log('Resposta:', text);
+            
+            if (res.ok) {
+                // Se status for 200/201/204, considerar sucesso
+                alert('Cliente deletado com sucesso');
+                carregarClientes();
+                return;
+            }
+            
+            if (res.status === 401 || res.status === 403) {
+                alert('Sessão expirada. Faça login novamente.');
+                window.location.href = '/login/';
+                return;
+            }
+            
+            throw new Error(`Erro ${res.status}: ${text.substring(0, 100)}`);
+        }
+
+        if (!data.success) {
+            throw new Error(data.message || 'Erro ao deletar');
+        }
+
+        alert('Cliente deletado com sucesso');
+        carregarClientes();
+
+    } catch (err) {
+        console.error('Erro ao deletar:', err);
+        alert('Erro ao deletar cliente: ' + err.message);
     }
 }

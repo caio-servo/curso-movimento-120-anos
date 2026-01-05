@@ -7,83 +7,30 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="course-container">
-        <!-- Sidebar - Conteúdo do Curso -->
+    <!-- VISTA DO USUÁRIO -->
+    <div class="course-container" id="userView" style="display: none;">
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h3>Conteúdo do curso</h3>
-            </div>
-
-            <div class="module">
-                <div class="module-header" id="moduleHeader1">
-                    <h4 class="module-title">Módulo 1</h4>
-                    <span class="module-count">1/4</span>
-                    <span class="module-toggle">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="18 15 12 9 6 15"></polyline>
-                        </svg>
-                    </span>
-                </div>
-
-                <div class="module-content" id="moduleContent1">
-                    <div class="lesson active" data-lesson="1">
-                        <div class="lesson-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                            </svg>
-                        </div>
-                        <span class="lesson-title">AULA 1</span>
-                        <span class="lesson-time">10:11</span>
-                    </div>
-
-                    <div class="lesson" data-lesson="2">
-                        <div class="lesson-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                            </svg>
-                        </div>
-                        <span class="lesson-title">AULA 2</span>
-                        <span class="lesson-time">16:12</span>
-                    </div>
-
-                    <div class="lesson locked" data-lesson="3">
-                        <div class="lesson-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="5" y="13" width="14" height="8" rx="2" ry="2"></rect>
-                                <path d="M7 13V8a5 5 0 0 1 10 0v5"></path>
-                            </svg>
-                        </div>
-                        <span class="lesson-title">AULA 3</span>
-                        <span class="lesson-time">11:55</span>
-                    </div>
-
-                    <div class="lesson locked" data-lesson="4">
-                        <div class="lesson-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="5" y="13" width="14" height="8" rx="2" ry="2"></rect>
-                                <path d="M7 13V8a5 5 0 0 1 10 0v5"></path>
-                            </svg>
-                        </div>
-                        <span class="lesson-title">AULA 4</span>
-                        <span class="lesson-time">11:55</span>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="video-header">
                 <button class="btn-back" id="btnBack">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
                 </button>
+                <h3>Conteúdo do curso</h3>
+            </div>
+
+            <div class="modules-list" id="modulesList">
+                <!-- Módulos carregados aqui -->
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="video-header">
                 <div class="header-title">
-                    <h2 id="headerTitle">Curso Oficial – AULA 1 - Boas-vindas</h2>
+                    <h2 id="headerTitle">Carregando...</h2>
                 </div>
                 <div class="header-info">
-                    <span class="progress" id="progress">Seu Progresso: 0 de 4 (0%)</span>
+                    <span class="progress" id="progress">Seu Progresso: 0 de 0 (0%)</span>
                     <button class="btn-complete" id="btnComplete">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="20 6 9 17 4 12"></polyline>
@@ -100,13 +47,11 @@
             </div>
 
             <div class="content-wrapper">
-                <!-- Video Section -->
                 <div class="video-section">
-                    <div class="video-container" id="videoContainer">
+                    <div class="video-container">
                         <iframe id="youtubePlayer" width="100%" height="100%" src="" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
                     </div>
 
-                    <!-- Tabs -->
                     <div class="tabs-section">
                         <div class="tabs">
                             <button class="tab active" data-tab="visao-geral">
@@ -123,46 +68,18 @@
                             </button>
                         </div>
 
-                        <!-- Tab Content -->
                         <div class="tab-content">
-                            <!-- Visão Geral -->
                             <div class="tab-panel active" id="visao-geral">
                                 <div class="lesson-info">
-                                    <h3 id="lessonTitle">AULA 1 - Boas-vindas</h3>
-                                    <p id="lessonDescription">Bem-vindo ao curso Movimento 120 anos. Nesta aula inicial, apresentamos a visão geral do programa.</p>
+                                    <h3 id="lessonTitle">Carregando...</h3>
+                                    <p id="lessonDescription">Carregando descrição...</p>
                                 </div>
                             </div>
 
-                            <!-- Arquivos -->
                             <div class="tab-panel" id="arquivos">
                                 <div class="files-section">
-                                    <div class="upload-area" id="uploadArea">
-                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                            <polyline points="17 8 12 3 7 8"></polyline>
-                                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                                        </svg>
-                                        <p>Arraste um arquivo ou clique para fazer upload</p>
-                                        <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar" style="display: none;">
-                                    </div>
-
                                     <div class="files-list" id="filesList">
-                                        <div class="file-item">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="color: #e74c3c;">
-                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
-                                            </svg>
-                                            <div class="file-info">
-                                                <p class="file-name">Material_Aula_2.pdf</p>
-                                                <p class="file-size">2.4 MB</p>
-                                            </div>
-                                            <button class="btn-download">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                                    <polyline points="7 10 12 15 17 10"></polyline>
-                                                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                                                </svg>
-                                            </button>
-                                        </div>
+                                        <p class="no-files">Nenhum arquivo disponível</p>
                                     </div>
                                 </div>
                             </div>
@@ -173,6 +90,131 @@
         </main>
     </div>
 
-    <script src="script.js"></script>
+    <!-- VISTA DO ADMIN -->
+    <div class="admin-container" id="adminView" style="display: none;">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Módulos</h3>
+                <button class="btn-add-module" id="btnAddModule" title="Novo Módulo">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modules-list" id="adminModulesList">
+                <!-- Módulos para admin -->
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h2 id="mainTitle">Selecione um módulo</h2>
+                <div class="header-buttons">
+                    <button class="btn-back-members" id="btnBackToMembers">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 6px;">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                        Voltar para Membros
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-area" id="contentArea">
+                <!-- Aulas carregadas aqui -->
+            </div>
+
+            <div class="empty-state-main" id="emptyMain" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                    <path d="M2 17l10 5 10-5"></path>
+                    <path d="M2 12l10 5 10-5"></path>
+                </svg>
+                <h3>Selecione um módulo</h3>
+                <p>ou crie um novo para começar</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL MÓDULO -->
+    <div class="modal" id="moduleModal">
+        <div class="modal-overlay" id="moduleModalOverlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="moduleModalTitle">Novo Módulo</h2>
+                <button class="btn-close" id="btnCloseModuleModal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="moduleForm">
+                    <div class="form-group">
+                        <label for="moduleName">Nome do Módulo</label>
+                        <input type="text" id="moduleName" placeholder="Ex: Módulo 1 - Introdução" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="moduleDescription">Descrição</label>
+                        <textarea id="moduleDescription" placeholder="Descrição do módulo" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" id="btnCancelModule">Cancelar</button>
+                        <button type="submit" class="btn-save">Salvar Módulo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AULA -->
+    <div class="modal" id="lessonModal">
+        <div class="modal-overlay" id="lessonModalOverlay"></div>
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2 id="lessonModalTitle">Nova Aula</h2>
+                <button class="btn-close" id="btnCloseLessonModal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="lessonForm">
+                    <input type="hidden" id="lessonModuleId">
+                    
+                    <div class="form-group">
+                        <label for="lessonTitleInput">Título da Aula</label>
+                        <input type="text" id="lessonTitleInput" placeholder="Ex: AULA 1 - Boas-vindas" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lessonDescription">Descrição</label>
+                        <textarea id="lessonDescription" placeholder="Descrição da aula" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="youtubeLink">Link do YouTube</label>
+                        <input type="url" id="youtubeLink" placeholder="https://www.youtube.com/watch?v=..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lessonDuration">Duração (HH:MM)</label>
+                        <input type="text" id="lessonDuration" placeholder="10:30" pattern="\d{1,2}:\d{2}" required>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" id="btnCancelLesson">Cancelar</button>
+                        <button type="submit" class="btn-save">Salvar Aula</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=1"></script>
 </body>
 </html>

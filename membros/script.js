@@ -114,14 +114,17 @@ async function loadUserData() {
 }
 
 // Verificar se o usuário é admin e mostrar o botão
+// Verificar se o usuário é admin e mostrar os botões
 function checkAdminAccess() {
     console.log('🔐 Verificando acesso admin:', userData.isAdmin);
     
     if (userData.isAdmin) {
         btnAdmin.style.display = 'flex';
-        console.log('✅ Botão Admin habilitado!');
+        btnManageCourses.style.display = 'flex';
+        console.log('✅ Botões Admin e Gerenciar habilitados!');
     } else {
         btnAdmin.style.display = 'none';
+        btnManageCourses.style.display = 'none';
         console.log('ℹ️ Usuário não é administrador');
     }
 }
@@ -424,3 +427,378 @@ document.addEventListener('keydown', function(e) {
 
 console.log('🎬 Script pronto! Menu de perfil configurado.');
 console.log('📊 Dados carregados:', userData);
+
+
+
+
+
+
+// ========== GERENCIAMENTO DE CURSOS (ADMIN) ==========
+
+let cursos = [];
+let editandoCursoId = null;
+
+// Elementos do DOM
+const btnManageCourses = document.getElementById('btnManageCourses');
+const manageCursosModal = document.getElementById('manageCursosModal');
+const manageCursosOverlay = document.getElementById('manageCursosOverlay');
+const btnCloseManageCursos = document.getElementById('btnCloseManageCursos');
+const btnAddCurso = document.getElementById('btnAddCurso');
+const cursosList = document.getElementById('cursosList');
+const cursosGrid = document.getElementById('cursosGrid');
+
+const cursoFormModal = document.getElementById('cursoFormModal');
+const cursoFormOverlay = document.getElementById('cursoFormOverlay');
+const btnCloseCursoForm = document.getElementById('btnCloseCursoForm');
+const cursoForm = document.getElementById('cursoForm');
+const cursoFormTitle = document.getElementById('cursoFormTitle');
+
+// Carregar cursos do backend
+async function carregarCursos() {
+    try {
+        console.log('[CURSOS] Carregando cursos do backend...');
+        
+        const response = await fetch('https://movimento120anos.ibr.com.br/api/cursos', {
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('[CURSOS] Status:', response.status);
+
+        // Verificar se é JSON válido
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            console.warn('[CURSOS] Resposta não é JSON. Status:', response.status);
+            const text = await response.text();
+            console.error('[CURSOS] Texto da resposta:', text.substring(0, 200));
+            cursos = [];
+        } else if (response.ok) {
+            const data = await response.json();
+            console.log('[CURSOS] Cursos recebidos:', data);
+            cursos = data.cursos || [];
+        } else {
+            console.warn('[CURSOS] Erro ao carregar (status:', response.status + ')');
+            cursos = [];
+        }
+    } catch (error) {
+        console.error('[CURSOS] Erro ao carregar:', error);
+        cursos = [];
+    }
+
+    renderizarCards();
+}
+
+// Renderizar cards na área de membros
+function renderizarCards() {
+    if (!cursosGrid) return;
+    
+    cursosGrid.innerHTML = '';
+
+    if (cursos.length === 0) {
+        cursosGrid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1/-1;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                    <path d="M2 17l10 5 10-5"></path>
+                    <path d="M2 12l10 5 10-5"></path>
+                </svg>
+                <h3>Nenhum curso disponível</h3>
+                <p>Os cursos aparecerão aqui quando forem adicionados</p>
+            </div>
+        `;
+        return;
+    }
+
+    cursos.forEach(curso => {
+        // Se o curso não está disponível e o usuário não é admin, não mostrar
+        if (!curso.disponivel && !userData.isAdmin) {
+            return;
+        }
+
+        const card = document.createElement('div');
+        card.className = curso.tipo === 'oficial' ? 'card card-active' : 'card card-coming';
+        
+        card.innerHTML = `
+            <div class="card-image ${curso.tipo === 'oficial' ? 'course-demo' : 'novidade'}">
+                <div class="card-overlay">
+                    <h3 class="card-title">${curso.nome}</h3>
+                    <p class="${curso.tipo === 'oficial' ? 'card-subtitle' : 'card-subtitle-novidade'}">
+                        ${curso.descricao}
+                    </p>
+                </div>
+            </div>
+        `;
+
+        card.addEventListener('click', () => {
+            if (userData.status === 'inativo') {
+                showAlert('Sua conta está inativa. Você não pode acessar os cursos.', 'error');
+                return;
+            }
+
+            if (curso.disponivel || userData.isAdmin) {
+                if (curso.tipo === 'oficial') {
+                    window.location.href = '/cursos/index.html';
+                } else {
+                    showAlert('Este conteúdo em breve estará disponível!', 'info');
+                }
+            } else {
+                showAlert('Este curso ainda não está disponível.', 'info');
+            }
+        });
+
+        cursosGrid.appendChild(card);
+    });
+}
+
+// Abrir modal de gerenciar cursos
+function abrirModalGerenciar() {
+    if (!manageCursosModal) return;
+    manageCursosModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    renderizarListaCursos();
+}
+
+// Fechar modal de gerenciar cursos
+function fecharModalGerenciar() {
+    if (!manageCursosModal) return;
+    manageCursosModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Renderizar lista de cursos no modal de gerenciamento
+function renderizarListaCursos() {
+    if (!cursosList) return;
+    
+    if (cursos.length === 0) {
+        cursosList.innerHTML = `
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                    <path d="M2 17l10 5 10-5"></path>
+                    <path d="M2 12l10 5 10-5"></path>
+                </svg>
+                <h3>Nenhum curso cadastrado</h3>
+                <p>Clique em "Adicionar Novo Curso" para começar</p>
+            </div>
+        `;
+        return;
+    }
+
+    cursosList.innerHTML = '';
+
+    cursos.forEach(curso => {
+        const item = document.createElement('div');
+        item.className = 'curso-item';
+        
+        item.innerHTML = `
+            <div class="curso-item-info">
+                <div class="curso-item-nome">${curso.nome}</div>
+                <div class="curso-item-descricao">${curso.descricao}</div>
+                <div class="curso-item-badges">
+                    <span class="badge ${curso.tipo === 'oficial' ? 'badge-oficial' : 'badge-breve'}">
+                        ${curso.tipo === 'oficial' ? 'Oficial' : 'Em Breve'}
+                    </span>
+                    <span class="badge ${curso.disponivel ? 'badge-disponivel' : 'badge-indisponivel'}">
+                        ${curso.disponivel ? 'Disponível' : 'Indisponível'}
+                    </span>
+                </div>
+            </div>
+            <div class="curso-item-actions">
+                <button class="btn-edit-curso" onclick="editarCurso(${curso.id})">Editar</button>
+                <button class="btn-delete-curso" onclick="excluirCurso(${curso.id})">Excluir</button>
+            </div>
+        `;
+
+        cursosList.appendChild(item);
+    });
+}
+
+// Abrir modal de adicionar/editar curso
+function abrirModalCursoForm(editando = false) {
+    if (!cursoFormModal) return;
+    
+    if (!editando) {
+        editandoCursoId = null;
+        cursoForm.reset();
+        cursoFormTitle.textContent = 'Novo Curso';
+    } else {
+        cursoFormTitle.textContent = 'Editar Curso';
+    }
+    
+    fecharModalGerenciar();
+    cursoFormModal.classList.add('active');
+}
+
+// Fechar modal de adicionar/editar curso
+function fecharModalCursoForm() {
+    if (!cursoFormModal) return;
+    cursoFormModal.classList.remove('active');
+    document.body.style.overflow = '';
+    editandoCursoId = null;
+    cursoForm.reset();
+}
+
+// Editar curso
+function editarCurso(id) {
+    const curso = cursos.find(c => c.id === id);
+    if (!curso) return;
+
+    editandoCursoId = id;
+    
+    document.getElementById('cursoNome').value = curso.nome;
+    document.getElementById('cursoDescricao').value = curso.descricao;
+    document.getElementById('cursoTipo').value = curso.tipo;
+    document.getElementById('cursoDisponivel').value = curso.disponivel.toString();
+
+    abrirModalCursoForm(true);
+}
+
+// Excluir curso
+async function excluirCurso(id) {
+    if (!confirm('Tem certeza que deseja excluir este curso?')) {
+        return;
+    }
+
+    try {
+        console.log('[CURSOS] Excluindo curso:', id);
+        
+        const response = await fetch(`https://movimento120anos.ibr.com.br/api/cursos/${id}`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Resposta não é JSON. Backend pode não ter o endpoint.');
+        }
+
+        const data = await response.json();
+        console.log('[CURSOS] Resposta ao excluir:', data);
+
+        if (response.ok && data.success) {
+            showAlert('Curso excluído com sucesso!', 'success');
+            await carregarCursos();
+            renderizarListaCursos();
+        } else {
+            showAlert('Erro ao excluir curso: ' + (data.message || 'Erro desconhecido'), 'error');
+        }
+    } catch (error) {
+        console.error('[CURSOS] Erro ao excluir:', error);
+        showAlert('Erro ao conectar com o servidor: ' + error.message, 'error');
+    }
+}
+
+// Salvar curso (criar ou editar)
+if (cursoForm) {
+    cursoForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const nome = document.getElementById('cursoNome').value.trim();
+        const descricao = document.getElementById('cursoDescricao').value.trim();
+        const tipo = document.getElementById('cursoTipo').value;
+        const disponivel = document.getElementById('cursoDisponivel').value === 'true';
+
+        console.log('[CURSOS] Salvando curso:', { nome, descricao, tipo, disponivel, editandoCursoId });
+
+        const btnSubmit = document.querySelector('.btn-submit-curso');
+        const originalText = btnSubmit.textContent;
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'SALVANDO...';
+
+        try {
+            // Preparar URL e método
+            const url = editandoCursoId 
+                ? `https://movimento120anos.ibr.com.br/api/cursos/${editandoCursoId}`
+                : 'https://movimento120anos.ibr.com.br/api/cursos';
+            
+            const method = editandoCursoId ? 'PUT' : 'POST';
+
+            console.log(`[CURSOS] ${method} para ${url}`);
+
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    nome,
+                    descricao,
+                    tipo,
+                    disponivel
+                })
+            });
+
+            console.log('[CURSOS] Status da resposta:', response.status);
+            console.log('[CURSOS] Headers:', response.headers.get('content-type'));
+
+            // Verificar se é JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('[CURSOS] Resposta não é JSON:', text.substring(0, 300));
+                
+                if (response.status === 401 || response.status === 403) {
+                    showAlert('Sessão expirada. Faça login novamente.', 'error');
+                    setTimeout(() => window.location.href = '/login/', 2000);
+                    return;
+                }
+                
+                throw new Error(`Backend retornou HTML (Status ${response.status}). Verifique se o endpoint /api/cursos existe.`);
+            }
+
+            const data = await response.json();
+            console.log('[CURSOS] Resposta do servidor:', data);
+
+            if (response.ok && data.success) {
+                console.log('[CURSOS] Salvo com sucesso! Recarregando...');
+                showAlert('Curso salvo com sucesso!', 'success');
+                fecharModalCursoForm();
+                await carregarCursos();
+                abrirModalGerenciar();
+            } else {
+                console.error('[CURSOS] Erro:', data.message);
+                showAlert('Erro ao salvar: ' + (data.message || 'Erro desconhecido'), 'error');
+            }
+        } catch (error) {
+            console.error('[CURSOS] Erro completo:', error);
+            showAlert('Erro: ' + error.message, 'error');
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = originalText;
+        }
+    });
+}
+
+// Event Listeners
+if (btnManageCourses) {
+    btnManageCourses.addEventListener('click', abrirModalGerenciar);
+}
+
+if (btnCloseManageCursos) {
+    btnCloseManageCursos.addEventListener('click', fecharModalGerenciar);
+}
+
+if (manageCursosOverlay) {
+    manageCursosOverlay.addEventListener('click', fecharModalGerenciar);
+}
+
+if (btnAddCurso) {
+    btnAddCurso.addEventListener('click', () => abrirModalCursoForm(false));
+}
+
+if (btnCloseCursoForm) {
+    btnCloseCursoForm.addEventListener('click', fecharModalCursoForm);
+}
+
+if (cursoFormOverlay) {
+    cursoFormOverlay.addEventListener('click', fecharModalCursoForm);
+}
+
+// Carregar cursos ao iniciar
+carregarCursos();
+
+console.log('🎓 Sistema de gerenciamento de cursos carregado!');

@@ -1,3 +1,4 @@
+/* ========== RESET ========== */
 * {
     margin: 0;
     padding: 0;
@@ -13,82 +14,128 @@
     --text-light: #b8c5d6;
 }
 
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: linear-gradient(135deg, #0f1419 0%, #1a2332 50%, #243447 100%);
     min-height: 100vh;
     color: #ffffff;
+    padding-top: 72px;
 }
 
-/* ========== HEADER ========== */
+/* ========== HEADER PROFISSIONAL ========== */
 .header {
-    background: rgba(15, 20, 25, 0.8);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 0;
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(15, 20, 25, 0.98);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0;
+    box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.3);
 }
 
 .header-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 40px;
+    padding: 12px 40px;
     display: flex;
-    justify-content: flex-end;
     align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    height: 72px;
 }
 
+/* ========== LOGO ========== */
+.header-left {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.header-logo span {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+}
+
+/* ========== HEADER RIGHT (ACTIONS) ========== */
 .header-right {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
     flex-shrink: 0;
 }
 
+/* ========== BUTTONS ========== */
+.btn-admin,
+.btn-manage-courses,
 .btn-profile {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    padding: 10px 20px;
-    background: rgba(94, 94, 255, 0.1);
-    color: var(--secondary);
-    border: 1px solid rgba(94, 94, 255, 0.3);
-    border-radius: 8px;
-    font-size: 14px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.btn-admin:hover,
+.btn-manage-courses:hover,
 .btn-profile:hover {
-    background: rgba(94, 94, 255, 0.2);
-    border-color: var(--secondary);
-    transform: translateY(-2px);
-}
-
-.btn-profile svg {
-    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
 }
 
 .btn-exit {
-    padding: 10px 24px;
-    background: linear-gradient(135deg, var(--primary), #e68a4f);
-    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
     border: none;
-    border-radius: 8px;
-    font-size: 14px;
+    border-radius: 6px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(217, 115, 54, 0.3);
+    transition: all 0.2s ease;
+    background: linear-gradient(135deg, #d97336 0%, #e68a4f 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(217, 115, 54, 0.2);
 }
 
 .btn-exit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(217, 115, 54, 0.4);
+    box-shadow: 0 6px 20px rgba(217, 115, 54, 0.3);
+}
+
+.btn-exit:active {
+    transform: translateY(0);
 }
 
 /* ========== HERO ========== */
@@ -299,20 +346,24 @@ body {
 
 /* ========== MODAL DE PERFIL ========== */
 .profile-modal,
-.change-password-modal {
+.change-password-modal,
+.manage-courses-modal,
+.curso-form-modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1000;
+    z-index: 1001;
     display: none;
     align-items: center;
     justify-content: center;
 }
 
 .profile-modal.active,
-.change-password-modal.active {
+.change-password-modal.active,
+.manage-courses-modal.active,
+.curso-form-modal.active {
     display: flex;
     animation: fadeInModal 0.3s ease;
 }
@@ -336,7 +387,8 @@ body {
     backdrop-filter: blur(5px);
 }
 
-.profile-modal-content {
+.profile-modal-content,
+.manage-modal-content {
     position: relative;
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -347,6 +399,10 @@ body {
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     animation: scaleIn 0.3s ease;
+}
+
+.manage-modal-content {
+    max-width: 700px;
 }
 
 @keyframes scaleIn {
@@ -392,7 +448,8 @@ body {
     color: #ffffff;
 }
 
-.profile-modal-body {
+.profile-modal-body,
+.manage-modal-body {
     padding: 32px 24px;
 }
 
@@ -479,7 +536,8 @@ body {
 }
 
 /* Formulário de Trocar Senha */
-.change-password-form {
+.change-password-form,
+.curso-form {
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -505,9 +563,11 @@ body {
     align-items: center;
 }
 
-.password-input-wrapper input {
+.password-input-wrapper input,
+.form-group input,
+.form-group select {
     width: 100%;
-    padding: 12px 46px 12px 16px;
+    padding: 12px 16px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -516,10 +576,20 @@ body {
     transition: all 0.3s ease;
 }
 
-.password-input-wrapper input:focus {
+.password-input-wrapper input {
+    padding-right: 46px;
+}
+
+.password-input-wrapper input:focus,
+.form-group input:focus,
+.form-group select:focus {
     outline: none;
     border-color: var(--secondary);
     background: rgba(255, 255, 255, 0.08);
+}
+
+.form-group select {
+    cursor: pointer;
 }
 
 .toggle-password-btn {
@@ -540,7 +610,8 @@ body {
     color: #ffffff;
 }
 
-.btn-submit-password {
+.btn-submit-password,
+.btn-submit-curso {
     width: 100%;
     padding: 14px;
     background: linear-gradient(135deg, var(--primary), #e68a4f);
@@ -555,25 +626,207 @@ body {
     margin-top: 8px;
 }
 
-.btn-submit-password:hover {
+.btn-submit-curso {
+    background: linear-gradient(135deg, var(--secondary), #7c7dfe);
+    box-shadow: 0 4px 12px rgba(94, 94, 255, 0.3);
+}
+
+.btn-submit-password:hover,
+.btn-submit-curso:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(217, 115, 54, 0.4);
 }
 
-.btn-submit-password:disabled {
+.btn-submit-curso:hover {
+    box-shadow: 0 6px 20px rgba(94, 94, 255, 0.4);
+}
+
+.btn-submit-password:disabled,
+.btn-submit-curso:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
 }
 
-/* ========== RESPONSIVIDADE ========== */
+/* Botão Adicionar Curso */
+.btn-add-curso {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    margin-bottom: 24px;
+}
+
+.btn-add-curso:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* Lista de Cursos */
+.cursos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.curso-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    gap: 16px;
+}
+
+.curso-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--secondary);
+}
+
+.curso-item-info {
+    flex: 1;
+}
+
+.curso-item-nome {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 4px;
+}
+
+.curso-item-descricao {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 8px;
+}
+
+.curso-item-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-oficial {
+    background: rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badge-breve {
+    background: rgba(107, 114, 128, 0.2);
+    color: #9ca3af;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+.badge-disponivel {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-indisponivel {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.curso-item-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-edit-curso,
+.btn-delete-curso {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-edit-curso {
+    background: rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.btn-edit-curso:hover {
+    background: #3b82f6;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.btn-delete-curso {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-delete-curso:hover {
+    background: #ef4444;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+}
+
+.empty-state svg {
+    width: 64px;
+    height: 64px;
+    color: var(--border);
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    color: #ffffff;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 14px;
+}
+
+/* ========== RESPONSIVE ========== */
 @media (max-width: 1024px) {
     .header-container {
-        padding: 0 24px;
+        padding: 12px 32px;
+        gap: 24px;
     }
 
     .members-area {
-        padding: 60px 24px;
+        padding: 60px 32px;
     }
 
     .cards-grid {
@@ -586,32 +839,44 @@ body {
 }
 
 @media (max-width: 768px) {
+    body {
+        padding-top: 64px;
+    }
+
     .header-container {
-        padding: 0 20px;
-    }
-
-    .header-right {
+        padding: 12px 20px;
         gap: 12px;
+        height: 64px;
     }
 
-    .btn-profile span {
+    .header-logo span {
         display: none;
     }
 
+    .btn-admin span,
+    .btn-manage-courses span,
+    .btn-profile span,
+    .btn-exit span {
+        display: none;
+    }
+
+    .btn-admin,
+    .btn-manage-courses,
     .btn-profile {
-        padding: 10px 14px;
+        padding: 8px 12px;
+        font-size: 12px;
     }
 
-    .hero {
-        padding: 40px 20px;
+    .btn-exit {
+        padding: 8px 12px;
     }
 
-    .hero-title {
-        font-size: 32px;
+    .header-right {
+        gap: 6px;
     }
 
     .members-area {
-        padding: 60px 20px;
+        padding: 60px 24px;
     }
 
     .cards-grid {
@@ -623,24 +888,36 @@ body {
         height: 340px;
     }
 
-    .profile-modal-content {
+    .profile-modal-content,
+    .manage-modal-content {
         width: 95%;
+    }
+
+    .curso-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .curso-item-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .btn-edit-curso,
+    .btn-delete-curso {
+        flex: 1;
     }
 }
 
 @media (max-width: 480px) {
+    body {
+        padding-top: 56px;
+    }
+
     .header-container {
-        padding: 0 16px;
-        gap: 12px;
-    }
-
-    .btn-exit {
-        padding: 8px 16px;
-        font-size: 12px;
-    }
-
-    .btn-profile {
-        padding: 8px 12px;
+        padding: 10px 16px;
+        gap: 8px;
+        height: 56px;
     }
 
     .hero {
@@ -682,36 +959,62 @@ body {
         padding: 20px;
     }
 
-    .profile-modal-body {
+    .profile-modal-body,
+    .manage-modal-body {
         padding: 24px 20px;
+    }
+
+    .curso-item {
+        padding: 12px;
+    }
+
+    .curso-item-nome {
+        font-size: 14px;
+    }
+
+    .curso-item-descricao {
+        font-size: 12px;
+    }
+
+    .btn-edit-curso,
+    .btn-delete-curso {
+        padding: 6px 12px;
+        font-size: 12px;
     }
 }
 
+.image-upload-wrapper {
+    width: 100%;
+    margin-top: 8px;
+}
 
-.btn-admin {
+.image-preview {
+    width: 100%;
+    height: 180px;
+    border: 2px dashed #5e5eff;
+    border-radius: 12px;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-    color: #ffffff;
-    border: 1px solid rgba(139, 92, 246, 0.5);
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
+    justify-content: center;
     cursor: pointer;
+    background: rgba(94, 94, 255, 0.05);
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    color: #9ca3af;
+    gap: 12px;
 }
 
-.btn-admin:hover {
-    background: linear-gradient(135deg, #7c3aed, #6d28d9);
-    border-color: #8b5cf6;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+.image-preview:hover {
+    border-color: #7c7cff;
+    background: rgba(94, 94, 255, 0.1);
 }
 
-.btn-admin svg {
-    flex-shrink: 0;
+.image-preview svg {
+    stroke-width: 1.5;
 }
 
+#previewText {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+}
