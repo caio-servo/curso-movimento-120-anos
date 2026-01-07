@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Pagamento</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="container">
+        <div class="payment-card">
+            <h1 class="title">Finalizar Pagamento</h1>
+            <p class="subtitle">Revise os dados e conclua sua compra</p>
+
+            <div class="order-summary">
+                <div class="summary-row">
+                    <span>Plano Premium</span>
+                    <span>R$ 99,90</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span>R$ 99,90</span>
+                </div>
+            </div>
+
+            <form id="paymentForm">
+                <div class="input-group">
+                    <label for="name">Nome completo</label>
+                    <input type="text" id="name" placeholder="João da Silva" required />
+                </div>
+
+                <div class="input-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" placeholder="email@exemplo.com" required />
+                </div>
+
+                <div class="input-group">
+                    <label for="cpfCnpj">CPF ou CNPJ</label>
+                    <input type="text" id="cpfCnpj" placeholder="000.000.000-00" required />
+                </div>
+
+                <div class="input-group">
+                    <label for="paymentMethod">Forma de pagamento</label>
+                    <select id="paymentMethod" required>
+                        <option value="">Selecione</option>
+                        <option value="PIX">PIX</option>
+                        <option value="CREDIT_CARD">Cartão de Crédito</option>
+                        <option value="BOLETO">Boleto</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    PAGAR AGORA
+                </button>
+            </form>
+
+            <p class="secure-text">🔒 Pagamento processado com segurança</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

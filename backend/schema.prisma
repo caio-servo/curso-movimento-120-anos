@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UsuarioStatus {
+  ativo
+  inativo
+}
+
+enum CursoTipo {
+  oficial
+  breve
+}
+
+model Usuario {
+  id              Int            @id @default(autoincrement())
+  nome            String         @db.VarChar(255)
+  email           String         @unique @db.VarChar(255)
+  senha           String         @db.VarChar(255)
+
+  ultimoLogin     DateTime?      @map("ultimo_login")
+
+  last2faAt       DateTime?      @map("last_2fa_at")
+  twofaCode       String?        @map("twofa_code") @db.VarChar(20)
+  twofaExpiresAt  DateTime?      @map("twofa_expires_at")
+
+  wfaCode         String?        @map("wfa_code") @db.VarChar(20)
+
+  isAdmin         Boolean        @default(false)
+  status          UsuarioStatus  @default(ativo)
+
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  @@index([email])
+  @@index([isAdmin])
+  @@index([status])
+  @@index([email, wfaCode], name: "idx_usuarios_wfa")
+
+  @@map("usuarios")
+}
+
+model SmtpConfig {
+  id      Int     @id @default(autoincrement())
+  host    String  @db.VarChar(255)
+  port    Int
+  email   String  @db.VarChar(255)
+  senha   String  @db.VarChar(255)
+  secure  Boolean @default(true)
+
+  @@map("smtp_config")
+}
+
+model Curso {
+  id          Int        @id @default(autoincrement())
+  nome        String     @db.VarChar(255)
+  descricao   String     @db.Text
+  tipo        CursoTipo
+  disponivel  Boolean    @default(true)
+
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@index([disponivel])
+  @@index([tipo])
+
+  @@map("cursos")
+}
+
+model Modulo {
+  id          Int       @id @default(autoincrement())
+  nome        String    @db.VarChar(255)
+  descricao   String?   @db.Text
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  aulas       Aula[]
+
+  @@index([createdAt])
+
+  @@map("modulos")
+}
+
+model Aula {
+  id          Int       @id @default(autoincrement())
+  moduloId    Int       @map("modulo_id")
+
+  titulo      String    @db.VarChar(255)
+  descricao   String?   @db.Text
+  youtubeId   String    @map("youtube_id") @db.VarChar(50)
+  duracao     String    @db.VarChar(20)
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  modulo      Modulo    @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  anexos      Anexo[]
+
+  @@index([moduloId])
+  @@index([createdAt])
+
+  @@map("aulas")
+}
+
+model Anexo {
+  id             Int       @id @default(autoincrement())
+  aulaId         Int       @map("aula_id")
+
+  nomeArquivo    String    @map("nome_arquivo") @db.VarChar(255)
+  caminhoArquivo String    @map("caminho_arquivo") @db.Text
+  tamanho        Int?
+  tipoArquivo    String?   @map("tipo_arquivo") @db.VarChar(100)
+
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  aula           Aula      @relation(fields: [aulaId], references: [id], onDelete: Cascade)
+
+  @@index([aulaId])
+
+  @@map("anexos")
+}
