@@ -1,40 +1,63 @@
-const form = document.getElementById('paymentForm');
+document.addEventListener('DOMContentLoaded', () => {
 
-form.addEventListener('submit', async (e) => {
+  const form = document.getElementById('paymentForm');
+  const methodSelect = document.getElementById('paymentMethod');
+  const cardSection = document.getElementById('creditCardSection');
+
+  if (!methodSelect || !cardSection) {
+    console.error('Elementos não encontrados no DOM');
+    return;
+  }
+
+  methodSelect.addEventListener('change', () => {
+    cardSection.style.display =
+      methodSelect.value === 'CREDIT_CARD'
+        ? 'block'
+        : 'none';
+  });
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const method = methodSelect.value;
+
     const payload = {
-        name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
-        cpfCnpj: document.getElementById('cpfCnpj').value,
-        paymentMethod: document.getElementById('paymentMethod').value,
-        value: 99.90
+      paymentMethod: method,
+      value: 99.90, // 12x de 97
+      name: name.value,
+      email: email.value,
+      cpfCnpj: cpfCnpj.value
     };
 
-    try {
-        const response = await fetch('https://seu-backend.com/api/payments/asaas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Erro ao processar pagamento');
-        }
-
-        if (data.invoiceUrl) {
-            window.location.href = data.invoiceUrl; // boleto ou cartão
-        }
-
-        if (data.pixQrCode) {
-            alert('Pagamento PIX gerado com sucesso');
-            console.log(data.pixQrCode);
-        }
-
-    } catch (err) {
-        alert(err.message);
+    if (method === 'CREDIT_CARD') {
+      payload.card = {
+        holderName: ccHolderName.value,
+        number: ccNumber.value.replace(/\s/g, ''),
+        expiryMonth: ccExpMonth.value,
+        expiryYear: ccExpYear.value,
+        ccv: ccCvv.value
+      };
     }
+
+    const res = await fetch('http://localhost:3000', {
+  method: 'POST',
+  credentials: 'include',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(payload)
+});
+
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || 'Erro no pagamento');
+      return;
+    }
+
+    alert('Pagamento enviado com sucesso');
+  });
+
 });
 

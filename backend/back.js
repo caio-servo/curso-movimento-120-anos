@@ -4,6 +4,7 @@ const fs = require('fs');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const { sendEmail } = require('./sendEmail');
+const fetch = require('node-fetch');
 
 const app = express();
 
@@ -16,6 +17,10 @@ const allowedOrigins = [
     'https://movimento120anos.ibr.com.br'
 ];
 
+const ASAAS_BASE_URL =
+    process.env.ASAAS_ENV === 'production'
+        ? 'https://api.asaas.com/v3'
+        : 'https://api-sandbox.asaas.com/v3';
 app.use(cors({
     origin: function(origin, callback) {
         if (!origin || allowedOrigins.includes(origin)) {
@@ -33,8 +38,6 @@ app.use((req, res, next)=>{
     console.log("req", req.method);
     next();
 })
-
-// app.use(cors());
 
 // Parsers
 app.use(express.json());
@@ -92,6 +95,13 @@ const requireAdmin = (req, res, next) => {
     );
 };
 
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    env: process.env.ASAAS_ENV || 'not set'
+  });
+});
+
 app.get('/', (req, res) => {
     res.json({
         status: 'ok',
@@ -99,6 +109,136 @@ app.get('/', (req, res) => {
     });
 });
 
+// add funções pagamento
+async function tokenizeCreditCard(card) {
+    const response = await fetch(
+        `${ASAAS_BASE_URL}/creditCard/tokenize`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'access_token': process.env.ASAAS_API_KEY
+            },
+            body: JSON.stringify({
+                creditCard: {
+                    holderName: card.holderName,
+                    number: card.number,
+                    expiryMonth: card.expiryMonth,
+                    expiryYear: card.expiryYear,
+                    ccv: card.ccv
+                }
+            })
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.text();
+        console.error('[ASAAS][TOKENIZE] HTTP ERROR:', response.status, error);
+        throw new Error('Erro na tokenização do cartão');
+    }
+
+    const data = await response.json();
+    console.log('[ASAAS] Tokenização retorno:', data);
+    return data; 
+
+}
+
+async function createCreditCardPayment({ customerId, token, value, description }) {
+    const response = await fetch(
+        `${ASAAS_BASE_URL}/payments`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'access_token': process.env.ASAAS_API_KEY
+            },
+            body: JSON.stringify({
+                customer: customerId,
+                billingType: 'CREDIT_CARD',
+                value,
+                creditCardToken: token,
+                description
+            })
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.text();
+        console.error('[ASAAS][PAYMENT] HTTP ERROR:', response.status, error);
+        throw new Error('Erro ao criar pagamento');
+    }
+
+    const data = await response.json();
+    console.log('[ASAAS][PAYMENT] OK:', data);
+    return data;
+}
+
+
+// rota de pagamento
+app.post('/payments/credit-card', async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({ success: false, message: 'Não autenticado' });
+        }
+
+        const {
+            holderName,
+            number,
+            expiryMonth,
+            expiryYear,
+            ccv
+        } = req.body;
+
+        if (!holderName || !number || !expiryMonth || !expiryYear || !ccv) {
+            return res.status(400).json({
+                success: false,
+                message: 'Dados do cartão incompletos'
+            });
+        }
+
+        // Tokenizar cartão
+        const tokenized = await tokenizeCreditCard({
+            holderName,
+            number,
+            expiryMonth,
+            expiryYear,
+            ccv
+        });
+
+        if (!tokenized.creditCardToken) {
+            return res.status(400).json({
+                success: false,
+                message: 'Falha ao tokenizar cartão',
+                details: tokenized
+            });
+        }
+
+        //  Ideal: salvar customerId da Asaas no usuário
+        // provisório
+
+        // Criar pagamento
+        const payment = await createCreditCardPayment({
+            customerId: ASAAS_CUSTOMER_ID,
+            token: tokenized.creditCardToken,
+            value: 52.40,
+            description: 'Plano Premium Mensal'
+        });
+
+        return res.json({
+            success: true,
+            payment
+        });
+
+    } catch (error) {
+        console.error('[PAGAMENTO] Erro:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro ao processar pagamento'
+        });
+    }
+});
+
+// register
 app.post('/register', async (req, res) => {
     const { name, email, password } = req.body;
     
@@ -234,13 +374,13 @@ app.post('/login', (req, res) => {
 
                         console.log(`[LOGIN] Login direto bem-sucedido`);
                         
-                        // ✅ Retornar nome, email E isAdmin para o frontend
+                        // Retornar nome, email E isAdmin para o frontend
                         res.json({ 
                             success: true, 
                             message: 'Login realizado',
                             name: user.nome,
                             email: user.email,
-                            isAdmin: user.isAdmin === 1  // 🆕 ADICIONADO
+                            isAdmin: user.isAdmin === 1  //  ADICIONADO
                         });
                     }
                 );
@@ -295,13 +435,13 @@ app.post('/verify-2fa', (req, res) => {
                     }
                     console.log('[2FA] Verificação concluída com sucesso');
                     
-                    // ✅ Retornar nome, email E isAdmin para o frontend
+                    //  Retornar nome, email E isAdmin para o frontend
                     res.json({ 
                         success: true, 
                         message: '2FA verificado com sucesso',
                         name: user.nome,
                         email: user.email,
-                        isAdmin: user.isAdmin === 1  // 🆕 ADICIONADO
+                        isAdmin: user.isAdmin === 1  // ADICIONADO
                     });
                 }
             );
@@ -1036,5 +1176,5 @@ app.delete('/aulas/:id', requireAdmin, (req, res) => {
 
 const PORT = 3000;
 app.listen(PORT, () => {
-    console.log(`✅ Backend rodando em http://localhost:${PORT}`);
+    console.log(`Backend rodando em http://localhost:${PORT}`);
 });
